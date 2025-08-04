@@ -1,202 +1,418 @@
-<!DOCTYPE HTML>
-<!--
-	Miniport by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
-	<head>
-		<title>JKhoa - Portfolio & Blog</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="stylesheet" href="html5up-miniport/assets/css/main.css" />
-	</head>
-	<body class="is-preload">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nguyễn Hoàng Anh Khoa - Portfolio</title>
+    
+    <!-- CSS Libraries -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="html5up-miniport/assets/css/main.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" data-aos="fade-down">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="#home">NK</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link">Giới thiệu</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#skills" class="nav-link">Kỹ năng</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#projects" class="nav-link">Dự án</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">Liên hệ</a>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
 
-		<!-- Nav -->
-			<nav id="nav">
-				<ul class="container">
-					<li><a href="#top">Trang chủ</a></li>
-					<li><a href="#work">Dịch vụ</a></li>
-					<li><a href="#portfolio">Dự án</a></li>
-					<li><a href="#contact">Liên hệ</a></li>
-				</ul>
-			</nav>
+    <!-- Home Section -->
+    <section id="home" class="home-section">
+        <div class="container">
+            <div class="home-content" data-aos="fade-up">
+                <div class="home-image">
+                    <img src="html5up-miniport/images/pic00.jpg" alt="Nguyễn Hoàng Anh Khoa" class="profile-img">
+                </div>
+                <div class="home-text">
+                    <h1 class="home-title" data-aos="fade-up" data-aos-delay="200">
+                        Xin chào! Tôi là <span class="highlight">Nguyễn Hoàng Anh Khoa</span>
+                    </h1>
+                    <p class="home-subtitle" data-aos="fade-up" data-aos-delay="400">
+                        Sinh viên năm cuối ngành Công nghệ thông tin<br>
+                        Trường Đại học Đà Lạt
+                    </p>
+                    <div class="home-stats" data-aos="fade-up" data-aos-delay="600">
+                        <div class="stat-item">
+                            <span class="stat-number">21</span>
+                            <span class="stat-label">Tuổi</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">2.48</span>
+                            <span class="stat-label">GPA/4</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">4</span>
+                            <span class="stat-label">Năm học</span>
+                        </div>
+                    </div>
+                    <div class="home-buttons" data-aos="fade-up" data-aos-delay="800">
+                        <a href="#about" class="btn btn-primary">Tìm hiểu thêm</a>
+                        <a href="#contact" class="btn btn-secondary">Liên hệ ngay</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
 
-		<!-- Home -->
-			<article id="top" class="wrapper style1">
-				<div class="container">
-					<div class="row">
-						<div class="col-4 col-5-large col-12-medium">
-							<span class="image fit"><img src="html5up-miniport/images/pic00.jpg" alt="JKhoa" /></span>
-						</div>
-						<div class="col-8 col-7-large col-12-medium">
-							<header>
-								<h1>Xin chào! Tôi là <strong>JKhoa</strong>.</h1>
-							</header>
-							<p>Chào mừng bạn đến với <strong>jkhoa.site</strong>, nơi tôi chia sẻ kiến thức về lập trình, công nghệ và các dự án cá nhân. Tôi là một developer đam mê với công nghệ web và luôn tìm hiểu những điều mới mẻ.</p>
-							<a href="#work" class="button large scrolly">Tìm hiểu thêm về tôi</a>
-						</div>
-					</div>
-				</div>
-			</article>
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Giới thiệu</h2>
+            <div class="about-content">
+                <div class="about-text" data-aos="fade-right">
+                    <h3>Tiểu sử</h3>
+                    <p>
+                        Tôi là sinh viên năm cuối ngành Công nghệ thông tin tại Trường Đại học Đà Lạt. 
+                        Với niềm đam mê lập trình và công nghệ, tôi luôn tìm hiểu và học hỏi những 
+                        công nghệ mới để phát triển kỹ năng chuyên môn.
+                    </p>
+                    <p>
+                        Hiện tại tôi đang tập trung vào phát triển web và ứng dụng di động, 
+                        đồng thời tham gia các dự án nghiên cứu khoa học để tích lũy kinh nghiệm thực tế.
+                    </p>
+                </div>
+                <div class="about-achievements" data-aos="fade-left">
+                    <h3>Thành tích & Kinh nghiệm</h3>
+                    <div class="achievement-item">
+                        <div class="achievement-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="achievement-content">
+                            <h4>Hỗ trợ nghiên cứu khoa học cấp trường – 2023</h4>
+                            <p>Tham gia dự án nghiên cứu khoa học, xây dựng giao diện Front-end, thu thập dữ liệu và đóng góp ý tưởng kỹ thuật.</p>
+                        </div>
+                    </div>
+                    <div class="achievement-item">
+                        <div class="achievement-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="achievement-content">
+                            <h4>Khóa đào tạo lắp ráp PC cơ bản và bảo trì laptop – 2024</h4>
+                            <p>Tham gia khóa học về tháo lắp và lắp ráp các thành phần máy tính để bàn, thành thạo kỹ thuật cơ bản vệ sinh và bảo trì phần cứng laptop.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-		<!-- Work -->
-			<article id="work" class="wrapper style2">
-				<div class="container">
-					<header>
-						<h2>Những gì tôi làm.</h2>
-						<p>Chuyên về phát triển web và ứng dụng với các công nghệ hiện đại.</p>
-					</header>
-					<div class="row aln-center">
-						<div class="col-4 col-6-medium col-12-small">
-							<section class="box style1">
-								<span class="icon featured fa-code"></span>
-								<h3>Web Development</h3>
-								<p>Phát triển website responsive với HTML5, CSS3, JavaScript và các framework hiện đại như React, Vue.js.</p>
-							</section>
-						</div>
-						<div class="col-4 col-6-medium col-12-small">
-							<section class="box style1">
-								<span class="icon solid featured fa-mobile-alt"></span>
-								<h3>Mobile Apps</h3>
-								<p>Xây dựng ứng dụng di động cross-platform với React Native và Flutter cho iOS và Android.</p>
-							</section>
-						</div>
-						<div class="col-4 col-6-medium col-12-small">
-							<section class="box style1">
-								<span class="icon featured fa-database"></span>
-								<h3>Backend Development</h3>
-								<p>Phát triển API và hệ thống backend với Node.js, Python, và các cơ sở dữ liệu NoSQL/SQL.</p>
-							</section>
-						</div>
-					</div>
-					<footer>
-						<p>Bạn có muốn xem một số dự án gần đây của tôi không?</p>
-						<a href="#portfolio" class="button large scrolly">Xem portfolio</a>
-					</footer>
-				</div>
-			</article>
+    <!-- Skills Section -->
+    <section id="skills" class="skills-section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Kỹ năng</h2>
+            <div class="skills-content">
+                <div class="skills-category" data-aos="fade-up" data-aos-delay="200">
+                    <h3>Ngôn ngữ lập trình</h3>
+                    <div class="skills-grid">
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Python</span>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">C#</span>
+                                <span class="skill-percentage">80%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">C++</span>
+                                <span class="skill-percentage">75%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">JavaScript</span>
+                                <span class="skill-percentage">90%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 90%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skills-category" data-aos="fade-up" data-aos-delay="400">
+                    <h3>Frameworks & Tools</h3>
+                    <div class="skills-grid">
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Node.js</span>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">FastAPI</span>
+                                <span class="skill-percentage">80%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Angular</span>
+                                <span class="skill-percentage">70%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">PyTorch</span>
+                                <span class="skill-percentage">75%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-		<!-- Portfolio -->
-			<article id="portfolio" class="wrapper style3">
-				<div class="container">
-					<header>
-						<h2>Một số dự án gần đây.</h2>
-						<p>Các dự án tôi đã thực hiện và đang phát triển.</p>
-					</header>
-					<div class="row">
-						<div class="col-4 col-6-medium col-12-small">
-							<article class="box style2">
-								<a href="#" class="image featured"><img src="html5up-miniport/images/pic01.jpg" alt="E-commerce Website" /></a>
-								<h3><a href="#">Website Thương mại điện tử</a></h3>
-								<p>Website bán hàng online với đầy đủ tính năng thanh toán và quản lý đơn hàng.</p>
-							</article>
-						</div>
-						<div class="col-4 col-6-medium col-12-small">
-							<article class="box style2">
-								<a href="#" class="image featured"><img src="html5up-miniport/images/pic02.jpg" alt="Mobile App" /></a>
-								<h3><a href="#">Ứng dụng Di động</a></h3>
-								<p>App quản lý công việc và lịch trình với giao diện thân thiện người dùng.</p>
-							</article>
-						</div>
-						<div class="col-4 col-6-medium col-12-small">
-							<article class="box style2">
-								<a href="#" class="image featured"><img src="html5up-miniport/images/pic03.jpg" alt="Blog Platform" /></a>
-								<h3><a href="#">Nền tảng Blog</a></h3>
-								<p>Hệ thống blog với CMS tích hợp và SEO tối ưu.</p>
-							</article>
-						</div>
-						<div class="col-4 col-6-medium col-12-small">
-							<article class="box style2">
-								<a href="#" class="image featured"><img src="html5up-miniport/images/pic04.jpg" alt="Dashboard" /></a>
-								<h3><a href="#">Dashboard Analytics</a></h3>
-								<p>Bảng điều khiển phân tích dữ liệu với biểu đồ trực quan và báo cáo real-time.</p>
-							</article>
-						</div>
-						<div class="col-4 col-6-medium col-12-small">
-							<article class="box style2">
-								<a href="#" class="image featured"><img src="html5up-miniport/images/pic05.jpg" alt="API Service" /></a>
-								<h3><a href="#">API Service</a></h3>
-								<p>RESTful API service với authentication và documentation đầy đủ.</p>
-							</article>
-						</div>
-						<div class="col-4 col-6-medium col-12-small">
-							<article class="box style2">
-								<a href="#" class="image featured"><img src="html5up-miniport/images/pic06.jpg" alt="Learning Platform" /></a>
-								<h3><a href="#">Nền tảng Học tập</a></h3>
-								<p>Website học trực tuyến với video streaming và hệ thống quiz.</p>
-							</article>
-						</div>
-					</div>
-					<footer>
-						<p>Bạn có muốn liên hệ để thảo luận về dự án không?</p>
-						<a href="#contact" class="button large scrolly">Liên hệ ngay</a>
-					</footer>
-				</div>
-			</article>
+                <div class="skills-category" data-aos="fade-up" data-aos-delay="600">
+                    <h3>Công cụ & Ngoại ngữ</h3>
+                    <div class="tools-grid">
+                        <div class="tool-item">
+                            <i class="fab fa-git-alt"></i>
+                            <span>Git</span>
+                        </div>
+                        <div class="tool-item">
+                            <i class="fab fa-github"></i>
+                            <span>GitHub</span>
+                        </div>
+                        <div class="tool-item">
+                            <i class="fas fa-code"></i>
+                            <span>VS Code</span>
+                        </div>
+                        <div class="tool-item">
+                            <i class="fab fa-android"></i>
+                            <span>Android Studio</span>
+                        </div>
+                        <div class="tool-item">
+                            <i class="fab fa-figma"></i>
+                            <span>Figma</span>
+                        </div>
+                        <div class="tool-item">
+                            <i class="fas fa-microchip"></i>
+                            <span>Micro:bit</span>
+                        </div>
+                        <div class="tool-item">
+                            <i class="fas fa-language"></i>
+                            <span>Tiếng Anh - Trung cấp</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-		<!-- Contact -->
-			<article id="contact" class="wrapper style4">
-				<div class="container medium">
-					<header>
-						<h2>Hãy liên hệ với tôi.</h2>
-						<p>Tôi luôn sẵn sàng thảo luận về các dự án và cơ hội hợp tác.</p>
-					</header>
-					<div class="row">
-						<div class="col-12">
-							<form method="post" action="#">
-								<div class="row">
-									<div class="col-6 col-12-small">
-										<input type="text" name="name" id="name" placeholder="Họ và tên" />
-									</div>
-									<div class="col-6 col-12-small">
-										<input type="text" name="email" id="email" placeholder="Email" />
-									</div>
-									<div class="col-12">
-										<input type="text" name="subject" id="subject" placeholder="Tiêu đề" />
-									</div>
-									<div class="col-12">
-										<textarea name="message" id="message" placeholder="Nội dung tin nhắn"></textarea>
-									</div>
-									<div class="col-12">
-										<ul class="actions">
-											<li><input type="submit" value="Gửi tin nhắn" /></li>
-											<li><input type="reset" value="Xóa form" class="alt" /></li>
-										</ul>
-									</div>
-								</div>
-							</form>
-						</div>
-						<div class="col-12">
-							<hr />
-							<h3>Kết nối với tôi trên...</h3>
-							<ul class="social">
-								<li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
-								<li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
-								<li><a href="#" class="icon brands fa-linkedin-in"><span class="label">LinkedIn</span></a></li>
-								<li><a href="#" class="icon brands fa-github"><span class="label">Github</span></a></li>
-								<li><a href="#" class="icon brands fa-youtube"><span class="label">YouTube</span></a></li>
-								<li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
-							</ul>
-							<hr />
-						</div>
-					</div>
-					<footer>
-						<ul id="copyright">
-							<li>&copy; 2024 JKhoa. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-						</ul>
-					</footer>
-				</div>
-			</article>
+    <!-- Projects Section -->
+    <section id="projects" class="projects-section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Dự án</h2>
+            <div class="projects-grid">
+                <div class="project-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="project-image">
+                        <img src="html5up-miniport/images/pic01.jpg" alt="AI Image Generator">
+                        <div class="project-overlay">
+                            <a href="#" class="project-link">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3>AI Image Generator</h3>
+                        <p>Ứng dụng web cho phép tạo và hiển thị hình ảnh thông qua Pexels API với giao diện thân thiện người dùng.</p>
+                        <div class="project-tech">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Flask</span>
+                            <span class="tech-tag">Pexels API</span>
+                            <span class="tech-tag">HTML/CSS</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn btn-small">
+                                <i class="fab fa-github"></i> Xem code
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-		<!-- Scripts -->
-			<script src="html5up-miniport/assets/js/jquery.min.js"></script>
-			<script src="html5up-miniport/assets/js/jquery.scrolly.min.js"></script>
-			<script src="html5up-miniport/assets/js/browser.min.js"></script>
-			<script src="html5up-miniport/assets/js/breakpoints.min.js"></script>
-			<script src="html5up-miniport/assets/js/util.js"></script>
-			<script src="html5up-miniport/assets/js/main.js"></script>
+                <div class="project-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="project-image">
+                        <img src="html5up-miniport/images/pic02.jpg" alt="Simple Music App">
+                        <div class="project-overlay">
+                            <a href="#" class="project-link">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3>Simple Music App</h3>
+                        <p>Ứng dụng nghe nhạc cho Android với tính năng tải nhạc trực tuyến chỉ với một lần chạm.</p>
+                        <div class="project-tech">
+                            <span class="tech-tag">Java</span>
+                            <span class="tech-tag">Android Studio</span>
+                            <span class="tech-tag">API Integration</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn btn-small">
+                                <i class="fab fa-github"></i> Xem code
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-	</body>
+                <div class="project-card" data-aos="fade-up" data-aos-delay="600">
+                    <div class="project-image">
+                        <img src="html5up-miniport/images/pic03.jpg" alt="Portfolio Website">
+                        <div class="project-overlay">
+                            <a href="#" class="project-link">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3>Portfolio Website</h3>
+                        <p>Website portfolio cá nhân với thiết kế responsive, animation mượt mà và tích hợp form liên hệ.</p>
+                        <div class="project-tech">
+                            <span class="tech-tag">HTML5</span>
+                            <span class="tech-tag">CSS3</span>
+                            <span class="tech-tag">JavaScript</span>
+                            <span class="tech-tag">AOS</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="btn btn-small">
+                                <i class="fab fa-github"></i> Xem code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Liên hệ</h2>
+            <div class="contact-content">
+                <div class="contact-info" data-aos="fade-right">
+                    <h3>Thông tin liên hệ</h3>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>Điện thoại</h4>
+                            <p>0395123864</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>Email</h4>
+                            <p>nhakhoa1004@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>Địa chỉ</h4>
+                            <p>P3 Nhà Chung - TP Đà Lạt</p>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                                                 <a href="https://github.com/jkhoa" target="_blank" rel="noopener" class="social-link">
+                             <i class="fab fa-github"></i>
+                         </a>
+                         <a href="https://www.facebook.com/nguyen.khoa.319536" target="_blank" rel="noopener" class="social-link">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="contact-form" data-aos="fade-left">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" id="name" name="name" placeholder="Họ và tên" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="email" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" id="phone" name="phone" placeholder="Số điện thoại">
+                        </div>
+                        <div class="form-group">
+                            <textarea id="message" name="message" placeholder="Nội dung tin nhắn" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Gửi tin nhắn
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Nguyễn Hoàng Anh Khoa. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
 </html>
