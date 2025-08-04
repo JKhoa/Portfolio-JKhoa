@@ -218,6 +218,14 @@ function initScrollEffects() {
             }
         });
     });
+
+    // Set initial active state
+    const currentSection = window.location.hash || '#home';
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentSection) {
+            link.classList.add('active');
+        }
+    });
 }
 
 // ===== NOTIFICATION SYSTEM =====
