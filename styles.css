@@ -23,18 +23,6 @@
     --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-/* Dark mode variables */
-[data-theme="dark"] {
-    --text-primary: #f7fafc;
-    --text-secondary: #a0aec0;
-    --bg-primary: #1a202c;
-    --bg-secondary: #2d3748;
-    --border-color: #4a5568;
-    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.3);
-    --shadow-medium: 0 10px 25px rgba(0, 0, 0, 0.4);
-    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
 body {
     font-family: 'Open Sans', sans-serif;
     line-height: 1.6;
@@ -125,54 +113,6 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     transform: scale(1.05);
-}
-
-/* ===== THEME TOGGLE ===== */
-.theme-toggle {
-    margin-left: 1rem;
-}
-
-.theme-btn {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: 2px solid var(--border-color);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.theme-btn:hover {
-    transform: scale(1.1);
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow-medium);
-}
-
-.theme-btn .light-icon,
-.theme-btn .dark-icon {
-    font-size: 1.2rem;
-    transition: all 0.3s ease;
-}
-
-.theme-btn .dark-icon {
-    opacity: 0;
-    transform: rotate(90deg);
-}
-
-[data-theme="dark"] .theme-btn .light-icon {
-    opacity: 0;
-    transform: rotate(-90deg);
-}
-
-[data-theme="dark"] .theme-btn .dark-icon {
-    opacity: 1;
-    transform: rotate(0deg);
 }
 
 .hamburger {
@@ -711,20 +651,6 @@ body {
     background: var(--bg-primary);
 }
 
-/* Dark mode adjustments for skills */
-[data-theme="dark"] .skill-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .skill-card h4 {
-    color: var(--text-primary);
-}
-
-[data-theme="dark"] .skill-card p {
-    color: var(--text-secondary);
-}
-
 .skills-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -847,20 +773,6 @@ body {
     background: var(--bg-secondary);
 }
 
-/* Dark mode adjustments for projects */
-[data-theme="dark"] .project-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .project-content h3 {
-    color: var(--text-primary);
-}
-
-[data-theme="dark"] .project-content p {
-    color: var(--text-secondary);
-}
-
 .projects-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -964,24 +876,6 @@ body {
 .contact-section {
     padding: 100px 0;
     background: var(--bg-primary);
-}
-
-/* Dark mode adjustments for contact */
-[data-theme="dark"] .social-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .contact-form {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .form-group input,
-[data-theme="dark"] .form-group textarea {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border-color: var(--border-color);
 }
 
 .contact-content {
@@ -1183,15 +1077,6 @@ body {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-    .theme-toggle {
-        margin-left: 0.5rem;
-    }
-    
-    .theme-btn {
-        width: 40px;
-        height: 40px;
-    }
-    
     .hamburger {
         display: flex;
     }
