@@ -199,14 +199,15 @@ function initScrollEffects() {
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
     
-    window.addEventListener('scroll', function() {
+    function updateActiveNav() {
         let current = '';
+        const scrollPosition = window.scrollY + 100;
         
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
             const sectionHeight = section.clientHeight;
             
-            if (window.scrollY >= (sectionTop - 200)) {
+            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
                 current = section.getAttribute('id');
             }
         });
@@ -217,14 +218,22 @@ function initScrollEffects() {
                 link.classList.add('active');
             }
         });
-    });
-
+    }
+    
+    // Update active nav on scroll
+    window.addEventListener('scroll', throttle(updateActiveNav, 100));
+    
     // Set initial active state
-    const currentSection = window.location.hash || '#home';
+    updateActiveNav();
+    
+    // Update active nav when clicking on nav links
     navLinks.forEach(link => {
-        if (link.getAttribute('href') === currentSection) {
-            link.classList.add('active');
-        }
+        link.addEventListener('click', function() {
+            // Remove active class from all links
+            navLinks.forEach(l => l.classList.remove('active'));
+            // Add active class to clicked link
+            this.classList.add('active');
+        });
     });
 }
 
