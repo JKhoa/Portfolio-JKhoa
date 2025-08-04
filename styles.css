@@ -190,12 +190,26 @@ body {
     box-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 25px rgba(255, 255, 255, 0.5);
 }
 
-.firefly:nth-child(1) { top: 10%; left: 15%; animation-delay: 0s; }
-.firefly:nth-child(2) { top: 25%; left: 85%; animation-delay: 2.5s; }
-.firefly:nth-child(3) { top: 40%; left: 25%; animation-delay: 5s; }
-.firefly:nth-child(4) { top: 55%; left: 75%; animation-delay: 7.5s; }
-.firefly:nth-child(5) { top: 70%; left: 10%; animation-delay: 10s; }
-.firefly:nth-child(6) { top: 85%; left: 60%; animation-delay: 12.5s; }
+.firefly:nth-child(1) { top: 5%; left: 10%; animation-delay: 0s; }
+.firefly:nth-child(2) { top: 15%; left: 85%; animation-delay: 1.5s; }
+.firefly:nth-child(3) { top: 25%; left: 20%; animation-delay: 3s; }
+.firefly:nth-child(4) { top: 35%; left: 75%; animation-delay: 4.5s; }
+.firefly:nth-child(5) { top: 45%; left: 15%; animation-delay: 6s; }
+.firefly:nth-child(6) { top: 55%; left: 80%; animation-delay: 7.5s; }
+.firefly:nth-child(7) { top: 65%; left: 25%; animation-delay: 9s; }
+.firefly:nth-child(8) { top: 75%; left: 70%; animation-delay: 10.5s; }
+.firefly:nth-child(9) { top: 85%; left: 10%; animation-delay: 12s; }
+.firefly:nth-child(10) { top: 95%; left: 60%; animation-delay: 13.5s; }
+.firefly:nth-child(11) { top: 8%; left: 50%; animation-delay: 15s; }
+.firefly:nth-child(12) { top: 18%; left: 30%; animation-delay: 16.5s; }
+.firefly:nth-child(13) { top: 28%; left: 90%; animation-delay: 18s; }
+.firefly:nth-child(14) { top: 38%; left: 40%; animation-delay: 19.5s; }
+.firefly:nth-child(15) { top: 48%; left: 65%; animation-delay: 21s; }
+.firefly:nth-child(16) { top: 58%; left: 5%; animation-delay: 22.5s; }
+.firefly:nth-child(17) { top: 68%; left: 95%; animation-delay: 24s; }
+.firefly:nth-child(18) { top: 78%; left: 35%; animation-delay: 25.5s; }
+.firefly:nth-child(19) { top: 88%; left: 80%; animation-delay: 27s; }
+.firefly:nth-child(20) { top: 12%; left: 70%; animation-delay: 28.5s; }
 
 .stars {
     position: absolute;
@@ -235,28 +249,36 @@ body {
 
 @keyframes firefly {
     0% {
-        opacity: 0.3;
-        transform: translateY(0px) translateX(0px) scale(1);
+        opacity: 0.2;
+        transform: translateY(0px) translateX(0px) scale(0.8);
     }
-    20% {
+    15% {
         opacity: 1;
-        transform: translateY(-25px) translateX(15px) scale(1.4);
+        transform: translateY(-20px) translateX(25px) scale(1.5);
     }
-    40% {
-        opacity: 0.9;
-        transform: translateY(-50px) translateX(-10px) scale(1.1);
+    30% {
+        opacity: 0.8;
+        transform: translateY(-40px) translateX(-15px) scale(1.2);
+    }
+    45% {
+        opacity: 1;
+        transform: translateY(-60px) translateX(30px) scale(1.4);
     }
     60% {
-        opacity: 1;
-        transform: translateY(-35px) translateX(20px) scale(1.3);
+        opacity: 0.9;
+        transform: translateY(-35px) translateX(-25px) scale(1.1);
     }
-    80% {
-        opacity: 0.7;
-        transform: translateY(-70px) translateX(-15px) scale(1);
+    75% {
+        opacity: 1;
+        transform: translateY(-80px) translateX(20px) scale(1.3);
+    }
+    90% {
+        opacity: 0.6;
+        transform: translateY(-50px) translateX(-30px) scale(0.9);
     }
     100% {
-        opacity: 0.3;
-        transform: translateY(0px) translateX(0px) scale(1);
+        opacity: 0.2;
+        transform: translateY(0px) translateX(0px) scale(0.8);
     }
 }
 
@@ -949,11 +971,11 @@ body {
 
 /* ===== FOOTER ===== */
 .footer {
-    background: var(--bg-dark);
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
     color: white;
-    text-align: center;
-    padding: 2rem 0;
+    padding: 3rem 0 1.5rem;
     position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer::before {
@@ -962,8 +984,8 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), var(--primary-color), var(--accent-color), transparent);
 }
 
 .footer-content {
@@ -971,26 +993,39 @@ body {
     margin: 0 auto;
     padding: 0 20px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    justify-items: start;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
 }
 
 .footer-section {
     text-align: left;
-    width: 100%;
 }
 
 .footer-section h3 {
     color: var(--accent-color);
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.footer-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--gradient-secondary);
+    border-radius: 1px;
 }
 
 .footer-section p {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    font-size: 0.9rem;
+    color: #cbd5e0;
+    line-height: 1.7;
+    font-size: 0.95rem;
+    margin-bottom: 0.8rem;
 }
 
 .footer-section ul {
@@ -999,30 +1034,49 @@ body {
 }
 
 .footer-section ul li {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
 }
 
 .footer-section ul li a {
-    color: var(--text-secondary);
+    color: #cbd5e0;
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    display: inline-block;
+    position: relative;
 }
 
 .footer-section ul li a:hover {
     color: var(--accent-color);
+    transform: translateX(5px);
+}
+
+.footer-section ul li a::before {
+    content: '→';
+    position: absolute;
+    left: -15px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    color: var(--accent-color);
+}
+
+.footer-section ul li a:hover::before {
+    opacity: 1;
+    left: -20px;
 }
 
 .footer-bottom {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-top: 1.5rem;
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     grid-column: 1 / -1;
     text-align: center;
 }
 
 .footer-bottom p {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
+    color: #a0aec0;
+    font-size: 0.9rem;
+    font-weight: 400;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
