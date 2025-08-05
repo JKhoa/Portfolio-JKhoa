@@ -1,0 +1,45 @@
+[build]
+  # Thư mục chứa file build (nếu có)
+  publish = "."
+  
+  # Thư mục chứa file build (nếu sử dụng build tool)
+  # publish = "dist"
+  
+  # Command build (nếu cần)
+  # command = "npm run build"
+
+[build.environment]
+  # Biến môi trường cho build
+  NODE_VERSION = "18"
+
+# Cấu hình deploy
+[context.production]
+  # Branch chính để deploy
+  branch = "main"
+  
+  # Cấu hình redirects
+  [[redirects]]
+    from = "/*"
+    to = "/index.html"
+    status = 200
+
+# Cấu hình headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cấu hình form handling (nếu có form)
+[[redirects]]
+  from = "/contact"
+  to = "/index.html"
+  status = 200
+
+# Cấu hình 404
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404 

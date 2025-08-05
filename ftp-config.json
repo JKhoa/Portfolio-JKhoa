@@ -1,0 +1,6 @@
+{
+  "ftp_server": "your-ftp-server.hostinger.com",
+  "ftp_username": "your-ftp-username",
+  "ftp_password": "your-ftp-password",
+  "ftp_path": "/public_html/"
+} 
