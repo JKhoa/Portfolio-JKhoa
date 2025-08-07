@@ -76,6 +76,7 @@ function initSmoothScrolling() {
 }
 
 // ===== CONTACT FORM =====
+// Đã chuyển sang xử lý bằng backend Node.js, không cần EmailJS nữa
 function initContactForm() {
     const contactForm = document.getElementById('contactForm');
     
