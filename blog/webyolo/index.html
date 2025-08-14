@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO - Nhận Diện Sinh Viên Ngủ Gật</title>
+    <meta name="description" content="Dự án nghiên cứu và áp dụng các mô hình YOLO để nhận diện sinh viên ngủ gật trong lớp học">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-brain"></i>
+                <span>YOLO AI</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home">Trang Chủ</a></li>
+                <li><a href="#theory">Lý Thuyết</a></li>
+                <li><a href="#yolo">Phân Tích YOLO</a></li>
+                <li><a href="#process">Quy Trình</a></li>
+                <li><a href="#results">Kết Quả</a></li>
+                <li><a href="#contact">Liên Hệ</a></li>
+                <li><a href="../../index.html">← Về Portfolio</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">YOLO AI</span>
+                    <br>Nhận Diện Sinh Viên Ngủ Gật
+                </h1>
+                <p>Dự án nghiên cứu và áp dụng các mô hình YOLO tiên tiến để phát hiện trạng thái ngủ gật của sinh viên trong lớp học.</p>
+                <div class="hero-buttons">
+                    <a href="#demo" class="btn btn-primary">Xem Demo</a>
+                    <a href="#theory" class="btn btn-secondary">Tìm Hiểu Thêm</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="ai-brain">
+                    <i class="fas fa-brain"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Theory Section -->
+    <section id="theory" class="theory">
+        <div class="container">
+            <h2 class="section-title">Cơ Sở Lý Thuyết</h2>
+            <div class="theory-grid">
+                <div class="theory-card">
+                    <div class="card-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Machine Learning</h3>
+                    <p>Học máy là lĩnh vực nghiên cứu các thuật toán và mô hình thống kê cho phép máy tính học từ dữ liệu.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="card-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <h3>Convolutional Neural Networks</h3>
+                    <p>CNN là kiến trúc mạng nơ-ron chuyên biệt cho xử lý dữ liệu có cấu trúc lưới như hình ảnh.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="card-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Object Detection</h3>
+                    <p>Các thuật toán nhận dạng đối tượng phổ biến: R-CNN, SSD, YOLO.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- YOLO Analysis Section -->
+    <section id="yolo" class="yolo-analysis">
+        <div class="container">
+            <h2 class="section-title">Phân Tích Các Phiên Bản YOLO</h2>
+            <div class="yolo-timeline">
+                <div class="timeline-item">
+                    <h3>YOLOv1 (2016)</h3>
+                    <p>Phiên bản đầu tiên, giới thiệu khái niệm "You Only Look Once"</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>YOLOv3 (2018)</h3>
+                    <p>Cải thiện đáng kể về độ chính xác và khả năng phát hiện</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>YOLOv5 (2020)</h3>
+                    <p>Phiên bản được tối ưu hóa cho production với PyTorch</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>YOLOv8 (2023)</h3>
+                    <p>Phiên bản mới nhất với nhiều cải tiến về kiến trúc</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section id="process" class="process">
+        <div class="container">
+            <h2 class="section-title">Quy Trình Thực Hiện</h2>
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h3>Thu Thập Dữ Liệu</h3>
+                    <p>Thu thập ảnh và video từ camera lớp học</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h3>Gán Nhãn Dữ Liệu</h3>
+                    <p>Sử dụng LabelImg để gán nhãn bounding box</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h3>Tiền Xử Lý</h3>
+                    <p>Data augmentation và normalization</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">04</div>
+                    <h3>Huấn Luyện</h3>
+                    <p>Huấn luyện YOLO model và fine-tuning</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">05</div>
+                    <h3>Đánh Giá</h3>
+                    <p>Đánh giá bằng mAP, Precision, Recall</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results" class="results">
+        <div class="container">
+            <h2 class="section-title">Kết Quả & Demo</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">94.2%</div>
+                    <div class="metric-label">mAP</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">96.8%</div>
+                    <div class="metric-label">Precision</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">92.1%</div>
+                    <div class="metric-label">Recall</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">25 FPS</div>
+                    <div class="metric-label">Tốc Độ</div>
+                </div>
+            </div>
+
+            <div id="demo" class="demo-section">
+                <h3>Demo Thời Gian Thực</h3>
+                <div class="video-container">
+                    <div class="video-placeholder">
+                        <i class="fas fa-play-circle"></i>
+                        <p>Video Demo YOLO Nhận Diện Ngủ Gật</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">Liên Hệ & Tài Liệu</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>Thông Tin Liên Hệ</h3>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>nhakhoa1004@gmail.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>0395123864</span>
+                    </div>
+                </div>
+                <div class="references">
+                    <h3>Tài Liệu Tham Khảo</h3>
+                    <ul>
+                        <li>You Only Look Once: Unified, Real-Time Object Detection</li>
+                        <li>YOLOv3: An Incremental Improvement</li>
+                        <li>YOLOv8: State-of-the-Art YOLO Models</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 YOLO AI Project by Nguyễn Hoàng Anh Khoa. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Chatbot -->
+    <div class="chatbot-container">
+        <div class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-comments"></i>
+        </div>
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <h4><i class="fas fa-robot"></i> AI Assistant</h4>
+                <button class="close-btn" id="closeChatbot" title="Đóng chatbot">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        Xin chào! Tôi có thể giúp bạn tìm hiểu về YOLO và nhận diện ngủ gật.
+                    </div>
+                </div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="chatbotInput" placeholder="Nhập câu hỏi...">
+                <button id="sendMessage" title="Gửi tin nhắn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop" title="Lên đầu trang">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
