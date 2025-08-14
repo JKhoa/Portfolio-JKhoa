@@ -17,6 +17,13 @@
   # Branch chính để deploy
   branch = "main"
   
+  # Ép chuyển hướng sang HTTPS cho mọi request (nếu chưa bật trong Dashboard)
+  [[redirects]]
+    from = "http://*"
+    to = "https://:splat"
+    status = 301
+    force = true
+  
   # Cấu hình redirects
   [[redirects]]
     from = "/*"
@@ -31,6 +38,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
 
 # Cấu hình form handling (nếu có form)
 [[redirects]]
