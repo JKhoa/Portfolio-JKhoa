@@ -66,7 +66,7 @@ function Copy-YoloFiles {
     
     Write-Host ""
     Write-Host "File sync completed successfully!" -ForegroundColor Green
-    Write-Host "YOLO website is now accessible at: https://jkhoa.site/blog/webyolo" -ForegroundColor Cyan
+    Write-Host "YOLO website is now accessible at: https://jkhoa.dev/blog/webyolo" -ForegroundColor Cyan
 }
 
 # Function to backup existing files

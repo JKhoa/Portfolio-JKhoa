@@ -25,15 +25,13 @@ git push origin main
 6. Click "Save"
 
 ### Bước 3: Kiểm tra CNAME
-File `CNAME` đã được cấu hình với `jkhoa.site`. Đảm bảo file này tồn tại trong thư mục gốc.
+File `CNAME` đã được cấu hình với `jkhoa.dev`. Đảm bảo file này tồn tại trong thư mục gốc.
 
 ## 👤 Thông tin cá nhân
 
 - **Tên đầy đủ:** Nguyễn Hoàng Anh Khoa
-- **Tuổi:** 21
 - **Nghề nghiệp:** Sinh viên năm cuối ngành Công nghệ thông tin
 - **Trường:** Đại học Đà Lạt
-- **GPA:** 2.48/4
 - **Email:** nhakhoa1004@gmail.com
 - **GitHub:** https://github.com/jkhoa
 - **Facebook:** https://www.facebook.com/nguyen.khoa.319536
@@ -179,7 +177,7 @@ emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {...})
 
 ## 🔗 Liên kết
 
-- **Website:** https://jkhoa.site
+- **Website:** https://jkhoa.dev
 - **GitHub Repository:** [Link đến repo của bạn]
 - **EmailJS:** https://www.emailjs.com/
 

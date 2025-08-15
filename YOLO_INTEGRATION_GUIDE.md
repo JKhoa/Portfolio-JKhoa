@@ -3,7 +3,7 @@
 ## 📋 Tổng quan
 
 Dự án YOLO về "Nhận diện sinh viên ngủ gật" đã được tích hợp vào Portfolio chính và có thể truy cập qua:
-- **URL trực tiếp:** `https://jkhoa.site/blog/webyolo`
+- **URL trực tiếp:** `https://jkhoa.dev/blog/webyolo`
 - **Từ Portfolio:** Nhấn vào dự án "Website giới thiệu về Yolo" trong section Projects
 
 ## 📁 Cấu trúc thư mục
@@ -50,7 +50,7 @@ Portfolio-JKhoa/
 
 ## 🌐 Triển khai lên hosting
 
-### Đối với Hostinger (jkhoa.site)
+### Đối với Hostinger (jkhoa.dev)
 
 1. Upload toàn bộ thư mục `Portfolio-JKhoa` lên public_html
 2. Cấu trúc trên server sẽ là:
@@ -63,7 +63,7 @@ Portfolio-JKhoa/
    │       └── js/script.js
    └── index.html (portfolio chính)
    ```
-3. Website YOLO sẽ accessible tại: `https://jkhoa.site/blog/webyolo`
+3. Website YOLO sẽ accessible tại: `https://jkhoa.dev/blog/webyolo`
 
 ### Đối với Netlify/Vercel
 
@@ -75,7 +75,7 @@ Portfolio-JKhoa/
 
 ### Portfolio chính (index.html)
 - ✅ Thêm project card "Website giới thiệu về Yolo"
-- ✅ Link trỏ đến `https://jkhoa.site/blog/webyolo`
+- ✅ Link trỏ đến `https://jkhoa.dev/blog/webyolo`
 - ✅ Loại bỏ thanh tiến trình trong phần Skills
 - ✅ Thiết kế responsive và animation mượt mà
 

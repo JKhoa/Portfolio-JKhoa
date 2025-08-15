@@ -16,11 +16,11 @@ Portfolio-JKhoa/
 
 ### 🎯 Portfolio Updates:
 - ✅ Thêm project "Website giới thiệu về YOLO" 
-- ✅ Link trỏ đến `https://jkhoa.site/blog/webyolo`
+- ✅ Link trỏ đến `https://jkhoa.dev/blog/webyolo`
 - ✅ Loại bỏ progress bars trong Skills section
 - ✅ Cập nhật mô tả dự án với tech stack thực tế
 
-## 🌐 Để deploy lên jkhoa.site:
+## 🌐 Để deploy lên jkhoa.dev:
 
 ### Bước 1: Upload files
 ```bash
@@ -39,8 +39,8 @@ public_html/
 ```
 
 ### Bước 2: Kiểm tra URLs
-- Portfolio chính: `https://jkhoa.site/`
-- YOLO project: `https://jkhoa.site/blog/webyolo/`
+- Portfolio chính: `https://jkhoa.dev/`
+- YOLO project: `https://jkhoa.dev/blog/webyolo/`
 - Navigation giữa hai trang hoạt động seamlessly
 
 ### Bước 3: Test functionality
@@ -103,7 +103,7 @@ cd "d:\Study\Web_Nang_Cao\Portfolio-JKhoa"
 
 Bạn giờ đây có một **professional portfolio website** với:
 - **Trang chủ portfolio** showcase tất cả projects
-- **Dedicated YOLO project page** accessible via `jkhoa.site/blog/webyolo`
+- **Dedicated YOLO project page** accessible via `jkhoa.dev/blog/webyolo`
 - **Seamless navigation** giữa portfolio và projects
 - **Interactive AI chatbot** để engage visitors
 - **Modern responsive design** hoạt động trên tất cả devices
