@@ -12,7 +12,7 @@
 ### 1. Thông tin cá nhân (Dòng 25-30)
 ```html
 <h1>Xin chào! Tôi là <strong>JKhoa</strong>.</h1>
-<p>Chào mừng bạn đến với <strong>jkhoa.site</strong>, nơi tôi chia sẻ kiến thức về lập trình, công nghệ và các dự án cá nhân. Tôi là một developer đam mê với công nghệ web và luôn tìm hiểu những điều mới mẻ.</p>
+<p>Chào mừng bạn đến với <strong>jkhoa.dev</strong>, nơi tôi chia sẻ kiến thức về lập trình, công nghệ và các dự án cá nhân. Tôi là một developer đam mê với công nghệ web và luôn tìm hiểu những điều mới mẻ.</p>
 ```
 
 ### 2. Dịch vụ (Dòng 45-75)

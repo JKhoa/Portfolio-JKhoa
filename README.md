@@ -78,7 +78,7 @@ File `CNAME` đã được cấu hình với `jkhoa.dev`. Đảm bảo file này
 
 ### **Hosting**
 - **GitHub Pages:** Static site hosting
-- **Custom Domain:** jkhoa.site
+- **Custom Domain:** jkhoa.dev
 
 ## 📁 Cấu trúc thư mục
 

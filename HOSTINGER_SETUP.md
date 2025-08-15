@@ -7,7 +7,7 @@
 3. **Chọn gói hosting phù hợp:**
    - **Premium**: Phù hợp cho website portfolio
    - **Business**: Nếu cần nhiều tài nguyên hơn
-4. **Liên kết domain `jkhoa.site` với hosting plan**
+4. **Liên kết domain `jkhoa.dev` với hosting plan**
 
 ## 📋 Bước 2: Lấy thông tin FTP
 
@@ -15,7 +15,7 @@
 2. **Chọn Hosting > Manage > Files > FTP Accounts**
 3. **Tạo FTP account mới hoặc sử dụng account có sẵn**
 4. **Ghi lại thông tin:**
-   - FTP Server (ví dụ: `ftp.jkhoa.site`)
+   - FTP Server (ví dụ: `ftp.jkhoa.dev`)
    - FTP Username
    - FTP Password
 
@@ -26,7 +26,7 @@
 
 ```json
 {
-  "ftp_server": "ftp.jkhoa.site",
+  "ftp_server": "ftp.jkhoa.dev",
   "ftp_username": "your-actual-username",
   "ftp_password": "your-actual-password",
   "ftp_path": "/public_html/"
@@ -43,7 +43,7 @@
 ## 📋 Bước 5: Kiểm tra website
 
 1. **Chờ 5-10 phút để DNS cập nhật**
-2. **Truy cập: https://jkhoa.site**
+2. **Truy cập: https://jkhoa.dev**
 3. **Kiểm tra tất cả chức năng website**
 
 ## 🔧 Troubleshooting

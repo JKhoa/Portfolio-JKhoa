@@ -1,7 +1,7 @@
 # Deploy Script cho JKhoa Website
 # Chạy script này để triển khai website lên GitHub Pages
 
-Write-Host "🚀 Bắt đầu triển khai website jkhoa.site..." -ForegroundColor Green
+Write-Host "🚀 Bắt đầu triển khai website jkhoa.dev..." -ForegroundColor Green
 
 # Kiểm tra xem có đang ở đúng thư mục không
 if (-not (Test-Path "index.html")) {
@@ -35,7 +35,7 @@ git push origin main
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Đã push thành công!" -ForegroundColor Green
     Write-Host ""
-    Write-Host "🌐 Website sẽ được deploy trong vài phút tại: https://jkhoa.site" -ForegroundColor Cyan
+    Write-Host "🌐 Website sẽ được deploy trong vài phút tại: https://jkhoa.dev" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "📋 Các bước tiếp theo:" -ForegroundColor Yellow
     Write-Host "1. Vào GitHub repository"

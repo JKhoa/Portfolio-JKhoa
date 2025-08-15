@@ -14,7 +14,7 @@ param(
     [string]$FtpPath = "/public_html/"
 )
 
-Write-Host "🚀 Bắt đầu triển khai website jkhoa.site lên Hostinger..." -ForegroundColor Green
+Write-Host "🚀 Bắt đầu triển khai website jkhoa.dev lên Hostinger..." -ForegroundColor Green
 
 # Kiểm tra xem có đang ở đúng thư mục không
 if (-not (Test-Path "index.html")) {
@@ -130,7 +130,7 @@ foreach ($folder in $foldersToUpload) {
 
 Write-Host ""
 Write-Host "🎉 Hoàn thành upload!" -ForegroundColor Green
-Write-Host "🌐 Website sẽ có sẵn tại: https://jkhoa.site" -ForegroundColor Cyan
+Write-Host "🌐 Website sẽ có sẵn tại: https://jkhoa.dev" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "📋 Lưu ý:" -ForegroundColor Yellow
 Write-Host "- Có thể mất vài phút để DNS cập nhật"

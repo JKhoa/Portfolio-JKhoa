@@ -1,10 +1,10 @@
-# Script kiểm tra trạng thái website jkhoa.site
+# Script kiểm tra trạng thái website jkhoa.dev
 # Chạy: .\check-website.ps1
 
-Write-Host "🔍 Kiểm tra trạng thái website jkhoa.site..." -ForegroundColor Green
+Write-Host "🔍 Kiểm tra trạng thái website jkhoa.dev..." -ForegroundColor Green
 
-$website = "https://jkhoa.site"
-$httpWebsite = "http://jkhoa.site"
+$website = "https://jkhoa.dev"
+$httpWebsite = "http://jkhoa.dev"
 
 # Kiểm tra HTTPS
 try {
@@ -24,7 +24,7 @@ try {
 
 # Kiểm tra DNS
 try {
-    $dns = Resolve-DnsName -Name "jkhoa.site" -Type A
+    $dns = Resolve-DnsName -Name "jkhoa.dev" -Type A
     Write-Host "✅ DNS hoạt động - IP: $($dns.IPAddress)" -ForegroundColor Green
 } catch {
     Write-Host "❌ DNS không hoạt động: $($_.Exception.Message)" -ForegroundColor Red
@@ -32,7 +32,7 @@ try {
 
 # Kiểm tra ping
 try {
-    $ping = Test-Connection -ComputerName "jkhoa.site" -Count 1 -Quiet
+    $ping = Test-Connection -ComputerName "jkhoa.dev" -Count 1 -Quiet
     if ($ping) {
         Write-Host "✅ Ping thành công" -ForegroundColor Green
     } else {

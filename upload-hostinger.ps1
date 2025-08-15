@@ -91,5 +91,5 @@ foreach ($folder in $folders) {
 
 Write-Host ""
 Write-Host "🎉 Hoàn thành upload!" -ForegroundColor Green
-Write-Host "🌐 Website: https://jkhoa.site" -ForegroundColor Cyan
+Write-Host "🌐 Website: https://jkhoa.dev" -ForegroundColor Cyan
 Write-Host "⏳ Chờ 5-10 phút để website hoạt động" -ForegroundColor Yellow 

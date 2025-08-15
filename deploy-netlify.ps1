@@ -37,7 +37,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "🌐 Netlify sẽ tự động deploy trong vài phút" -ForegroundColor Cyan
     Write-Host "🔗 Website: https://imaginative-daffodil-6a3a60.netlify.app" -ForegroundColor Magenta
-    Write-Host "🔗 Custom Domain: https://jkhoa.site" -ForegroundColor Magenta
+    Write-Host "🔗 Custom Domain: https://jkhoa.dev" -ForegroundColor Magenta
     Write-Host ""
     Write-Host "📋 Tính năng deploy tự động:" -ForegroundColor Yellow
     Write-Host "✅ Website hoạt động 24/7 ngay cả khi tắt máy" -ForegroundColor Green

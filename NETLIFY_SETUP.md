@@ -23,18 +23,18 @@
 ## 📋 Bước 3: Thiết lập Custom Domain
 
 1. **Vào Site settings > Domain management**
-2. **Thêm custom domain: `jkhoa.site`**
+2. **Thêm custom domain: `jkhoa.dev`**
 3. **Cập nhật DNS records:**
    ```
    Type: CNAME
-   Name: jkhoa.site
+   Name: jkhoa.dev
    Value: imaginative-daffodil-6a3a60.netlify.app
    ```
 
 ## 📋 Bước 4: Kích hoạt SSL Certificate
 
 1. **Vào Site settings > Domain management**
-2. **Chọn domain `jkhoa.site`**
+2. **Chọn domain `jkhoa.dev`**
 3. **Kích hoạt "HTTPS"**
 4. **Chọn "Force HTTPS"**
 

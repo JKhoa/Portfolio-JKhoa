@@ -45,7 +45,6 @@
   from = "/contact"
   to = "/index.html"
   status = 200
-
 # Cấu hình 404
 [[redirects]]
   from = "/*"
