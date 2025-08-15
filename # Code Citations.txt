@@ -1,0 +1,39 @@
+# Code Citations
+
+## License: unknown
+https://github.com/thienth/pt14311-web-php2/tree/e086418a46e1117fbeb59d6daec68d97f0af7ef7/template-thi-assignment/views/home/index.blade.php
+
+```
+">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm</title>
+    <link rel=
+```
+
+
+## License: unknown
+https://github.com/toannguyenhue92/C0320G1-NguyenVanToan/tree/1351f2dc67dec855559211694eb4267bdffe9a52/Module2_Web/06_product_management/src/main/resources/templates/home.html
+
+```
+charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm</title>
+    <link rel="stylesheet" href="/
+```
+
+
+## License: unknown
+https://github.com/hoaviethoang/Web-bao-chi/tree/d113826b65d01233d597d83e1372a2818093a4b4/WEB%20bao%20tri/TinTuc/game.php
+
+```
+>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+```
+
