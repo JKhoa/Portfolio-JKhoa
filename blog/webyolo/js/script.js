@@ -808,3 +808,351 @@ console.log('Chatbot elements check:');
 console.log('chatbotToggle:', chatbotToggle);
 console.log('chatbotWindow:', chatbotWindow);
 console.log('closeChatbot:', closeChatbot);
+
+// ===========================
+// LIVE DEMO: Drowsiness Detection
+// ===========================
+
+class DrowsinessDetector {
+    constructor() {
+        // DOM Elements
+        this.webcam = document.getElementById('webcam');
+        this.canvas = document.getElementById('canvas');
+        this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+        this.detectionOverlay = document.getElementById('detectionOverlay');
+        this.statusIndicator = document.getElementById('statusIndicator');
+        this.startDemo = document.getElementById('startDemo');
+        this.stopDemo = document.getElementById('stopDemo');
+        this.capturePhoto = document.getElementById('capturePhoto');
+        this.resetDemo = document.getElementById('resetDemo');
+        
+        // Status elements
+        this.detectionStatus = document.getElementById('detectionStatus');
+        this.confidence = document.getElementById('confidence');
+        this.fps = document.getElementById('fps');
+        this.historyList = document.getElementById('historyList');
+        
+        // Settings
+        this.sensitivity = document.getElementById('sensitivity');
+        this.sensitivityValue = document.getElementById('sensitivityValue');
+        this.alertMode = document.getElementById('alertMode');
+        
+        // Detection state
+        this.isRunning = false;
+        this.stream = null;
+        this.lastDetectionTime = 0;
+        this.frameCount = 0;
+        this.fpsStartTime = Date.now();
+        this.detectionHistory = [];
+        
+        // Face detection parameters
+        this.eyeClosedFrames = 0;
+        this.headDownFrames = 0;
+        this.alertThreshold = 15; // frames
+        
+        this.initializeEvents();
+        this.initializeDetection();
+    }
+    
+    initializeEvents() {
+        if (this.startDemo) {
+            this.startDemo.addEventListener('click', () => this.startDetection());
+        }
+        
+        if (this.stopDemo) {
+            this.stopDemo.addEventListener('click', () => this.stopDetection());
+        }
+        
+        if (this.capturePhoto) {
+            this.capturePhoto.addEventListener('click', () => this.capturePhoto());
+        }
+        
+        if (this.resetDemo) {
+            this.resetDemo.addEventListener('click', () => this.resetDetection());
+        }
+        
+        if (this.sensitivity) {
+            this.sensitivity.addEventListener('input', (e) => {
+                this.sensitivityValue.textContent = e.target.value;
+            });
+        }
+    }
+    
+    initializeDetection() {
+        // Khởi tạo face detection (sử dụng một thuật toán đơn giản)
+        this.updateStatus('Sẵn sàng bắt đầu', false);
+    }
+    
+    async startDetection() {
+        try {
+            // Request camera access
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    width: 640, 
+                    height: 480,
+                    facingMode: 'user'
+                }
+            });
+            
+            if (this.webcam) {
+                this.webcam.srcObject = this.stream;
+                this.webcam.play();
+            }
+            
+            // Setup canvas
+            if (this.canvas && this.webcam) {
+                this.canvas.width = 640;
+                this.canvas.height = 480;
+            }
+            
+            this.isRunning = true;
+            this.updateStatus('Đang phát hiện...', true);
+            this.toggleButtons(true);
+            
+            // Start detection loop
+            this.detectionLoop();
+            
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            this.updateStatus('Lỗi truy cập camera', false);
+            alert('Không thể truy cập camera. Vui lòng kiểm tra quyền trình duyệt.');
+        }
+    }
+    
+    stopDetection() {
+        this.isRunning = false;
+        
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+        }
+        
+        this.updateStatus('Đã dừng', false);
+        this.toggleButtons(false);
+        this.clearOverlay();
+    }
+    
+    resetDetection() {
+        this.stopDetection();
+        this.detectionHistory = [];
+        this.eyeClosedFrames = 0;
+        this.headDownFrames = 0;
+        this.updateHistoryDisplay();
+        this.updateDetectionStats('Đã reset', 0);
+    }
+    
+    detectionLoop() {
+        if (!this.isRunning) return;
+        
+        this.frameCount++;
+        this.updateFPS();
+        
+        // Simulate face detection (thay thế bằng AI model thực)
+        this.simulateDetection();
+        
+        // Continue loop
+        requestAnimationFrame(() => this.detectionLoop());
+    }
+    
+    simulateDetection() {
+        // Mô phỏng phát hiện khuôn mặt và trạng thái ngủ gật
+        const currentTime = Date.now();
+        
+        // Random simulation cho demo
+        const hasFace = Math.random() > 0.1; // 90% có mặt
+        
+        if (hasFace) {
+            const eyesClosed = Math.random() > 0.85; // 15% nhắm mắt
+            const headDown = Math.random() > 0.9; // 10% cúi đầu
+            
+            // Update counters
+            if (eyesClosed) {
+                this.eyeClosedFrames++;
+            } else {
+                this.eyeClosedFrames = 0;
+            }
+            
+            if (headDown) {
+                this.headDownFrames++;
+            } else {
+                this.headDownFrames = 0;
+            }
+            
+            // Determine status
+            let status = 'Tỉnh táo';
+            let confidence = 95;
+            let alertLevel = 'normal';
+            
+            if (this.eyeClosedFrames > this.alertThreshold) {
+                status = 'Ngủ gật';
+                confidence = Math.min(95, 60 + this.eyeClosedFrames * 2);
+                alertLevel = 'sleeping';
+            } else if (this.eyeClosedFrames > 5 || this.headDownFrames > 8) {
+                status = 'Buồn ngủ';
+                confidence = Math.min(85, 50 + Math.max(this.eyeClosedFrames, this.headDownFrames) * 3);
+                alertLevel = 'drowsy';
+            }
+            
+            this.updateDetectionStats(status, confidence);
+            this.drawDetectionBox(alertLevel, confidence);
+            
+            // Add to history if significant
+            if (alertLevel !== 'normal') {
+                this.addToHistory(status, confidence);
+            }
+            
+            // Alert if needed
+            if (alertLevel === 'sleeping' && this.alertMode.value !== 'visual') {
+                this.triggerAlert();
+            }
+            
+        } else {
+            this.updateDetectionStats('Không phát hiện mặt', 0);
+            this.clearOverlay();
+        }
+    }
+    
+    drawDetectionBox(alertLevel, confidence) {
+        if (!this.detectionOverlay) return;
+        
+        // Clear previous
+        this.detectionOverlay.innerHTML = '';
+        
+        // Simulate face box position
+        const box = document.createElement('div');
+        box.className = `detection-box ${alertLevel}`;
+        
+        // Random position for demo
+        const x = 100 + Math.random() * 200;
+        const y = 50 + Math.random() * 150;
+        const width = 150 + Math.random() * 50;
+        const height = 180 + Math.random() * 40;
+        
+        box.style.left = x + 'px';
+        box.style.top = y + 'px';
+        box.style.width = width + 'px';
+        box.style.height = height + 'px';
+        
+        // Add label
+        const label = document.createElement('div');
+        label.className = 'detection-label';
+        label.textContent = `${alertLevel.toUpperCase()} (${confidence}%)`;
+        box.appendChild(label);
+        
+        this.detectionOverlay.appendChild(box);
+    }
+    
+    clearOverlay() {
+        if (this.detectionOverlay) {
+            this.detectionOverlay.innerHTML = '';
+        }
+    }
+    
+    updateStatus(text, isActive) {
+        if (this.statusIndicator) {
+            const statusText = this.statusIndicator.querySelector('.status-text');
+            if (statusText) {
+                statusText.textContent = text;
+            }
+            
+            this.statusIndicator.className = 'status-indicator';
+            if (isActive) {
+                this.statusIndicator.classList.add('active');
+            }
+        }
+    }
+    
+    updateDetectionStats(status, confidence) {
+        if (this.detectionStatus) {
+            this.detectionStatus.textContent = status;
+        }
+        
+        if (this.confidence) {
+            this.confidence.textContent = confidence + '%';
+        }
+    }
+    
+    updateFPS() {
+        const now = Date.now();
+        if (now - this.fpsStartTime >= 1000) {
+            const currentFPS = Math.round(this.frameCount * 1000 / (now - this.fpsStartTime));
+            if (this.fps) {
+                this.fps.textContent = currentFPS;
+            }
+            this.frameCount = 0;
+            this.fpsStartTime = now;
+        }
+    }
+    
+    addToHistory(status, confidence) {
+        const timestamp = new Date().toLocaleTimeString();
+        const historyItem = {
+            time: timestamp,
+            status: status,
+            confidence: confidence
+        };
+        
+        this.detectionHistory.unshift(historyItem);
+        
+        // Keep only last 10 items
+        if (this.detectionHistory.length > 10) {
+            this.detectionHistory.pop();
+        }
+        
+        this.updateHistoryDisplay();
+    }
+    
+    updateHistoryDisplay() {
+        if (!this.historyList) return;
+        
+        if (this.detectionHistory.length === 0) {
+            this.historyList.innerHTML = '<p class="no-history">Chưa có dữ liệu phát hiện</p>';
+            return;
+        }
+        
+        const historyHTML = this.detectionHistory.map(item => 
+            `<div class="history-item">
+                ${item.time} - ${item.status} (${item.confidence}%)
+            </div>`
+        ).join('');
+        
+        this.historyList.innerHTML = historyHTML;
+    }
+    
+    toggleButtons(isRunning) {
+        if (this.startDemo) {
+            this.startDemo.style.display = isRunning ? 'none' : 'block';
+        }
+        if (this.stopDemo) {
+            this.stopDemo.style.display = isRunning ? 'block' : 'none';
+        }
+    }
+    
+    capturePhoto() {
+        if (!this.isRunning || !this.webcam || !this.canvas || !this.ctx) return;
+        
+        // Capture current frame
+        this.ctx.drawImage(this.webcam, 0, 0, this.canvas.width, this.canvas.height);
+        
+        // Convert to image and download
+        const link = document.createElement('a');
+        link.download = `drowsiness_detection_${Date.now()}.png`;
+        link.href = this.canvas.toDataURL();
+        link.click();
+    }
+    
+    triggerAlert() {
+        // Simple alert for demo
+        if (Date.now() - this.lastDetectionTime > 3000) { // Throttle alerts
+            console.log('🚨 CẢNH BÁO: Phát hiện ngủ gật!');
+            this.lastDetectionTime = Date.now();
+        }
+    }
+}
+
+// Initialize demo when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if we're on the demo page (has demo elements)
+    if (document.getElementById('webcam')) {
+        window.drowsinessDetector = new DrowsinessDetector();
+    }
+});

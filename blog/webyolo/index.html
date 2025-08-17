@@ -21,6 +21,7 @@
             </div>
             <ul class="nav-menu">
                 <li><a href="#home">Trang Chủ</a></li>
+                <li><a href="#demo">Demo Trực Tiếp</a></li>
                 <li><a href="#theory">Lý Thuyết</a></li>
                 <li><a href="#yolo">Phân Tích YOLO</a></li>
                 <li><a href="#process">Quy Trình</a></li>
@@ -53,6 +54,116 @@
             <div class="hero-visual">
                 <div class="ai-brain">
                     <i class="fas fa-brain"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Demo Section -->
+    <section id="demo" class="demo-section">
+        <div class="container">
+            <h2 class="section-title">
+                <i class="fas fa-video"></i>
+                Demo Phát Hiện Ngủ Gật Trực Tiếp
+            </h2>
+            <p class="section-subtitle">Trải nghiệm công nghệ AI YOLO phát hiện ngủ gật ngay trên trình duyệt của bạn</p>
+            
+            <div class="demo-container">
+                <div class="video-section">
+                    <div class="video-container">
+                        <video id="webcam" autoplay playsinline></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <div class="detection-overlay" id="detectionOverlay"></div>
+                        <div class="status-indicator" id="statusIndicator">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Chưa kết nối camera</span>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-controls">
+                        <button class="btn btn-primary" id="startDemo">
+                            <i class="fas fa-play"></i> Bắt Đầu Demo
+                        </button>
+                        <button class="btn btn-secondary" id="stopDemo" style="display: none;">
+                            <i class="fas fa-stop"></i> Dừng Demo
+                        </button>
+                        <button class="btn btn-info" id="capturePhoto">
+                            <i class="fas fa-camera"></i> Chụp Ảnh
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="detection-info">
+                    <div class="info-card">
+                        <h3><i class="fas fa-brain"></i> Trạng Thái Phát Hiện</h3>
+                        <div class="detection-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Trạng thái:</span>
+                                <span class="stat-value" id="detectionStatus">Đang chờ...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Độ tin cậy:</span>
+                                <span class="stat-value" id="confidence">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">FPS:</span>
+                                <span class="stat-value" id="fps">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detection-history">
+                            <h4>Lịch sử phát hiện:</h4>
+                            <div class="history-list" id="historyList">
+                                <p class="no-history">Chưa có dữ liệu phát hiện</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3><i class="fas fa-cog"></i> Cài Đặt</h3>
+                        <div class="setting-group">
+                            <label for="sensitivity">Độ nhạy phát hiện:</label>
+                            <input type="range" id="sensitivity" min="0.3" max="0.9" step="0.1" value="0.6">
+                            <span id="sensitivityValue">0.6</span>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label for="alertMode">Chế độ cảnh báo:</label>
+                            <select id="alertMode">
+                                <option value="visual">Hiển thị trực quan</option>
+                                <option value="sound">Âm thanh</option>
+                                <option value="both">Cả hai</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <button class="btn btn-warning" id="resetDemo">
+                                <i class="fas fa-refresh"></i> Reset Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="demo-instructions">
+                <h3><i class="fas fa-info-circle"></i> Hướng dẫn sử dụng</h3>
+                <div class="instruction-grid">
+                    <div class="instruction-item">
+                        <span class="step-number">1</span>
+                        <p>Click "Bắt đầu Demo" và cho phép truy cập camera</p>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="step-number">2</span>
+                        <p>Ngồi thẳng trước camera để AI phát hiện khuôn mặt</p>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="step-number">3</span>
+                        <p>Thử nghiệm bằng cách nhắm mắt hoặc cúi đầu</p>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="step-number">4</span>
+                        <p>Quan sát kết quả phát hiện và độ tin cậy</p>
+                    </div>
                 </div>
             </div>
         </div>
