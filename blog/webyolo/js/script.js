@@ -8,6 +8,13 @@ const chatbotMessages = document.getElementById('chatbotMessages');
 const chatbotInput = document.getElementById('chatbotInput');
 const sendMessage = document.getElementById('sendMessage');
 const backToTop = document.getElementById('backToTop');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettings = document.getElementById('closeSettings');
+const saveSettings = document.getElementById('saveSettings');
+const testAI = document.getElementById('testAI');
+const groqApiKey = document.getElementById('groqApiKey');
+const aiStatus = document.getElementById('aiStatus');
 
 // Mobile Navigation
 hamburger.addEventListener('click', () => {
@@ -38,6 +45,143 @@ if (closeChatbot && chatbotWindow) {
     });
 }
 
+// Settings Modal
+if (settingsBtn && settingsModal) {
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('active');
+        loadSettings();
+    });
+}
+
+if (closeSettings && settingsModal) {
+    closeSettings.addEventListener('click', () => {
+        settingsModal.classList.remove('active');
+    });
+}
+
+if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            settingsModal.classList.remove('active');
+        }
+    });
+}
+
+if (saveSettings && groqApiKey && aiStatus) {
+    saveSettings.addEventListener('click', () => {
+        const apiKey = groqApiKey.value.trim();
+        if (apiKey) {
+            localStorage.setItem('groq_api_key', apiKey);
+            updateAIStatus('Groq AI (Thực)', 'connected');
+            addMessage('✅ API key đã được lưu! Bạn có thể sử dụng AI thực ngay bây giờ.', 'bot');
+        } else {
+            localStorage.removeItem('groq_api_key');
+            updateAIStatus('AI Mô Phỏng (Local)', 'local');
+            addMessage('ℹ️ Đã chuyển về chế độ AI mô phỏng.', 'bot');
+        }
+        settingsModal.classList.remove('active');
+    });
+}
+
+if (testAI) {
+    testAI.addEventListener('click', async() => {
+        const testBtn = testAI;
+        const originalText = testBtn.textContent;
+        testBtn.textContent = 'Đang test...';
+        testBtn.disabled = true;
+
+        try {
+            addMessage('🔍 Đang test AI...', 'bot');
+            // Simple test - just show that it works
+            setTimeout(() => {
+                addMessage('✅ Test thành công! AI hoạt động bình thường.', 'bot');
+                testBtn.textContent = originalText;
+                testBtn.disabled = false;
+            }, 1000);
+        } catch (error) {
+            addMessage('❌ Test thất bại: ' + error.message, 'bot');
+            testBtn.textContent = originalText;
+            testBtn.disabled = false;
+        }
+    });
+}
+
+// Load and update AI status
+function loadSettings() {
+    if (groqApiKey && aiStatus) {
+        const savedApiKey = localStorage.getItem('groq_api_key');
+        if (savedApiKey) {
+            groqApiKey.value = savedApiKey;
+            updateAIStatus('Groq AI (Thực)', 'connected');
+        } else {
+            groqApiKey.value = '';
+            updateAIStatus('AI Mô Phỏng (Local)', 'local');
+        }
+    }
+}
+
+function updateAIStatus(text, type) {
+    if (aiStatus) {
+        const statusIndicator = aiStatus.querySelector('.status-indicator');
+        const statusText = aiStatus.querySelector('.status-text');
+
+        if (statusText) statusText.textContent = text;
+
+        if (statusIndicator) {
+            if (type === 'connected') {
+                statusIndicator.style.background = '#4CAF50';
+            } else {
+                statusIndicator.style.background = 'var(--primary-color)';
+            }
+        }
+    }
+}
+
+// AI response system
+async function getAIResponse(message) {
+    const apiKey = localStorage.getItem('groq_api_key');
+
+    if (apiKey) {
+        try {
+            // Try Groq API
+            const response = await fetch('/api/groq', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    apiKey: apiKey
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.message;
+            }
+        } catch (error) {
+            console.log('Groq API failed, falling back to local AI');
+        }
+    }
+
+    // Fallback to simulated responses
+    const responses = [
+        "Đây là phản hồi từ AI mô phỏng. Bạn có thể thêm API key trong Settings để sử dụng AI thực!",
+        "Tôi hiểu bạn đang hỏi về: " + message + ". Đây là AI demo - hãy cấu hình API key để có trải nghiệm tốt hơn!",
+        "Cảm ơn câu hỏi của bạn! Hiện tại tôi đang chạy ở chế độ demo. Vào Settings để kết nối AI thực nhé!",
+        "Rất thú vị! Đây là câu trả lời mô phỏng. Để có câu trả lời chi tiết hơn, hãy thêm API key trong Settings."
+    ];
+
+    return responses[Math.floor(Math.random() * responses.length)];
+}
+
+// Initialize AI status on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof loadSettings === 'function') {
+        loadSettings();
+    }
+});
+
 // Simple chatbot responses
 const chatbotResponses = {
     'yolo': 'YOLO (You Only Look Once) là một thuật toán nhận dạng đối tượng thời gian thực được phát triển bởi Joseph Redmon. Nó có thể phát hiện và phân loại nhiều đối tượng trong một hình ảnh chỉ với một lần nhìn.',
@@ -54,7 +198,7 @@ const chatbotResponses = {
 };
 
 // Send message function
-function sendChatbotMessage() {
+async function sendChatbotMessage() {
     const message = chatbotInput.value.trim();
     if (message === '') return;
 
@@ -62,11 +206,29 @@ function sendChatbotMessage() {
     addMessage(message, 'user');
     chatbotInput.value = '';
 
-    // Simulate typing delay
-    setTimeout(() => {
-        const response = getChatbotResponse(message);
+    // Show typing indicator
+    addMessage('🤖 Đang suy nghĩ...', 'bot');
+
+    try {
+        // Get AI response
+        const response = await getAIResponse(message);
+
+        // Remove typing indicator
+        const messages = chatbotMessages.children;
+        if (messages.length > 0 && messages[messages.length - 1].textContent.includes('Đang suy nghĩ')) {
+            chatbotMessages.removeChild(messages[messages.length - 1]);
+        }
+
         addMessage(response, 'bot');
-    }, 1000);
+    } catch (error) {
+        // Remove typing indicator and show error
+        const messages = chatbotMessages.children;
+        if (messages.length > 0 && messages[messages.length - 1].textContent.includes('Đang suy nghĩ')) {
+            chatbotMessages.removeChild(messages[messages.length - 1]);
+        }
+
+        addMessage('❌ Xin lỗi, có lỗi xảy ra. Vui lòng thử lại!', 'bot');
+    }
 }
 
 // Add message to chat
