@@ -16,6 +16,9 @@ const testAI = document.getElementById('testAI');
 const groqApiKey = document.getElementById('groqApiKey');
 const aiStatus = document.getElementById('aiStatus');
 
+// API Configuration - SỬ DỤNG localStorage cho bảo mật
+const USE_LOCALSTORAGE_API = true; // Luôn dùng localStorage thay vì hardcode
+
 // Mobile Navigation
 hamburger.addEventListener('click', () => {
     hamburger.classList.toggle('active');
@@ -143,30 +146,44 @@ async function getAIResponse(message) {
 
     if (apiKey) {
         try {
-            // Try Groq API
-            const response = await fetch('/api/groq', {
+            // Call Groq API directly (no server needed)
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    message: message,
-                    apiKey: apiKey
+                    model: 'llama3-8b-8192',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'Bạn là AI assistant thông minh cho YOLO project. Trả lời bằng tiếng Việt, thân thiện và hữu ích. Chuyên về computer vision, machine learning, và YOLO object detection.'
+                        },
+                        {
+                            role: 'user',
+                            content: message
+                        }
+                    ],
+                    max_tokens: 512,
+                    temperature: 0.7
                 })
             });
 
             if (response.ok) {
                 const data = await response.json();
-                return data.message;
+                return data.choices[0].message.content;
+            } else {
+                console.log('Groq API error:', response.status);
             }
         } catch (error) {
-            console.log('Groq API failed, falling back to local AI');
+            console.log('Groq API failed:', error);
         }
     }
 
     // Fallback to simulated responses
     const responses = [
-        "Đây là phản hồi từ AI mô phỏng. Bạn có thể thêm API key trong Settings để sử dụng AI thực!",
+        "Đây là phản hồi từ AI mô phỏng. Hãy mở Settings ⚙️ để thêm API key và sử dụng AI thực!",
         "Tôi hiểu bạn đang hỏi về: " + message + ". Đây là AI demo - hãy cấu hình API key để có trải nghiệm tốt hơn!",
         "Cảm ơn câu hỏi của bạn! Hiện tại tôi đang chạy ở chế độ demo. Vào Settings để kết nối AI thực nhé!",
         "Rất thú vị! Đây là câu trả lời mô phỏng. Để có câu trả lời chi tiết hơn, hãy thêm API key trong Settings."
@@ -175,11 +192,32 @@ async function getAIResponse(message) {
     return responses[Math.floor(Math.random() * responses.length)];
 }
 
-// Initialize AI status on page load
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize chatbot
+function initializeChatbot() {
     if (typeof loadSettings === 'function') {
         loadSettings();
     }
+    
+    // Thêm thông báo chào mừng
+    setTimeout(() => {
+        const savedApiKey = localStorage.getItem('groq_api_key');
+        let welcomeMessage;
+        
+        if (savedApiKey) {
+            welcomeMessage = "🤖 Xin chào! Tôi là AI Assistant với Groq API. Hãy hỏi tôi bất kỳ điều gì về YOLO và computer vision!";
+        } else {
+            welcomeMessage = "🤖 Xin chào! Tôi đang chạy ở chế độ demo. Để có trải nghiệm AI thực, hãy thêm API key trong Settings ⚙️";
+        }
+        
+        if (chatbotMessages) {
+            addMessage(welcomeMessage, 'bot');
+        }
+    }, 500);
+}
+
+// Initialize AI status on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initializeChatbot();
 });
 
 // Simple chatbot responses
