@@ -912,6 +912,41 @@ h6 {
     margin-top: 0.5rem;
 }
 
+/* User Memory Management */
+.memory-info {
+    background: var(--secondary-bg);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+}
+
+.memory-stats {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.btn-small {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border: none;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #e55a2b, #e8841a);
+    transform: translateY(-1px);
+}
+
 
 /* Back to Top */
 

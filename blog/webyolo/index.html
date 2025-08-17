@@ -272,6 +272,25 @@
                         <span class="status-text">AI Mô Phỏng (Local)</span>
                     </div>
                 </div>
+                
+                <!-- User Memory Management -->
+                <div class="setting-group">
+                    <label for="userName">Tên của bạn (Tùy chọn):</label>
+                    <input type="text" id="userName" placeholder="Nhập tên để AI nhớ bạn">
+                    <small>AI sẽ gọi tên và cá nhân hóa câu trả lời</small>
+                </div>
+                
+                <div class="setting-group">
+                    <label>Bộ nhớ cuộc trò chuyện:</label>
+                    <div class="memory-info" id="memoryInfo">
+                        <div class="memory-stats">
+                            <span id="conversationCount">0 cuộc trò chuyện</span> • 
+                            <span id="interestCount">0 sở thích</span>
+                        </div>
+                        <button class="btn btn-small btn-warning" id="clearMemory">Xóa Bộ Nhớ</button>
+                    </div>
+                </div>
+                
                 <div class="setting-group">
                     <button class="btn btn-primary" id="saveSettings">Lưu Cài Đặt</button>
                     <button class="btn btn-secondary" id="testAI">Test AI</button>
