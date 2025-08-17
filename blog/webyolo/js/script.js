@@ -63,7 +63,7 @@ function getUserMemory() {
 // Update user memory
 function updateUserMemory(updates) {
     const currentMemory = getUserMemory();
-    const updatedMemory = { ...currentMemory, ...updates };
+    const updatedMemory = {...currentMemory, ...updates };
     updatedMemory.conversation_patterns.last_interaction = new Date().toISOString();
     localStorage.setItem(USER_MEMORY_KEY, JSON.stringify(updatedMemory));
 }
@@ -72,7 +72,7 @@ function updateUserMemory(updates) {
 function analyzeUserMessage(message) {
     const memory = getUserMemory();
     const updates = {};
-    
+
     // Phân tích tên
     const namePatterns = [
         /tôi là ([^,.\s]+)/i,
@@ -80,7 +80,7 @@ function analyzeUserMessage(message) {
         /mình là ([^,.\s]+)/i,
         /tôi tên ([^,.\s]+)/i
     ];
-    
+
     for (const pattern of namePatterns) {
         const match = message.match(pattern);
         if (match && match[1]) {
@@ -88,31 +88,31 @@ function analyzeUserMessage(message) {
             break;
         }
     }
-    
+
     // Phân tích sở thích
     const interestKeywords = [
         'thích', 'yêu thích', 'quan tâm', 'đam mê', 'sở thích',
         'computer vision', 'machine learning', 'AI', 'YOLO', 'deep learning',
         'programming', 'coding', 'python', 'javascript', 'web development'
     ];
-    
+
     const newInterests = [];
     interestKeywords.forEach(keyword => {
         if (message.toLowerCase().includes(keyword.toLowerCase())) {
             newInterests.push(keyword);
         }
     });
-    
+
     if (newInterests.length > 0) {
         updates.interests = [...new Set([...(memory.interests || []), ...newInterests])];
     }
-    
+
     // Phân tích nghề nghiệp
     const professionKeywords = [
         'sinh viên', 'học sinh', 'developer', 'lập trình viên', 'kỹ sư',
         'researcher', 'nghiên cứu', 'giáo viên', 'giảng viên'
     ];
-    
+
     professionKeywords.forEach(profession => {
         if (message.toLowerCase().includes(profession)) {
             updates.personal_info = {
@@ -121,7 +121,7 @@ function analyzeUserMessage(message) {
             };
         }
     });
-    
+
     // Phân tích yêu cầu ngôn ngữ
     if (message.toLowerCase().includes('english') || message.toLowerCase().includes('tiếng anh')) {
         updates.preferences = {
@@ -134,21 +134,21 @@ function analyzeUserMessage(message) {
             language: 'vietnamese'
         };
     }
-    
+
     // Lưu câu hỏi thường gặp
-    const questions = memory.conversation_patterns?.frequent_questions || [];
+    const questions = memory.conversation_patterns ? .frequent_questions || [];
     questions.push({
         question: message,
         timestamp: new Date().toISOString(),
         context: 'user_question'
     });
-    
+
     // Giữ chỉ 10 câu hỏi gần nhất
     updates.conversation_patterns = {
         ...memory.conversation_patterns,
         frequent_questions: questions.slice(-10)
     };
-    
+
     if (Object.keys(updates).length > 0) {
         updateUserMemory(updates);
     }
@@ -168,9 +168,9 @@ function saveConversation(userMessage, botResponse) {
         user: userMessage,
         bot: botResponse
     };
-    
+
     history.push(conversation);
-    
+
     // Giữ chỉ 20 cuộc trò chuyện gần nhất
     const recentHistory = history.slice(-20);
     localStorage.setItem(CONVERSATION_HISTORY_KEY, JSON.stringify(recentHistory));
@@ -239,14 +239,14 @@ if (saveSettings && groqApiKey && aiStatus) {
             updateAIStatus('AI Mô Phỏng (Local)', 'local');
             addMessage('ℹ️ Đã chuyển về chế độ AI mô phỏng.', 'bot');
         }
-        
+
         // Save user name
         if (userName && userName.value.trim()) {
             const userMemory = getUserMemory();
             updateUserMemory({ name: userName.value.trim() });
             addMessage(`✅ Đã lưu tên: ${userName.value.trim()}! Tôi sẽ nhớ bạn.`, 'bot');
         }
-        
+
         settingsModal.classList.remove('active');
         loadUserMemoryToUI(); // Refresh memory display
     });
@@ -300,7 +300,7 @@ function loadSettings() {
             updateAIStatus('AI Mô Phỏng (Local)', 'local');
         }
     }
-    
+
     // Load user memory data
     loadUserMemoryToUI();
 }
@@ -309,17 +309,17 @@ function loadSettings() {
 function loadUserMemoryToUI() {
     const userMemory = getUserMemory();
     const conversationHistory = getConversationHistory();
-    
+
     // Load user name
     if (userName && userMemory.name) {
         userName.value = userMemory.name;
     }
-    
+
     // Update memory stats
     if (conversationCount) {
         conversationCount.textContent = `${conversationHistory.length} cuộc trò chuyện`;
     }
-    
+
     if (interestCount) {
         const interests = userMemory.interests || [];
         interestCount.textContent = `${interests.length} sở thích`;
@@ -347,7 +347,7 @@ function updateAIStatus(text, type) {
 async function getAIResponse(message) {
     // Phân tích tin nhắn để cập nhật bộ nhớ người dùng
     analyzeUserMessage(message);
-    
+
     const apiKey = localStorage.getItem('groq_api_key');
     const userMemory = getUserMemory();
     const conversationHistory = getConversationHistory().slice(-5); // 5 cuộc trò chuyện gần nhất
@@ -367,12 +367,12 @@ THÔNG TIN NGƯỜI DÙNG:`;
             if (userMemory.name) {
                 systemPrompt += `\n- Tên: ${userMemory.name}`;
             }
-            
+
             if (userMemory.interests && userMemory.interests.length > 0) {
                 systemPrompt += `\n- Sở thích: ${userMemory.interests.join(', ')}`;
             }
-            
-            if (userMemory.personal_info?.profession) {
+
+            if (userMemory.personal_info ? .profession) {
                 systemPrompt += `\n- Nghề nghiệp: ${userMemory.personal_info.profession}`;
             }
 
@@ -385,13 +385,13 @@ THÔNG TIN NGƯỜI DÙNG:`;
 
             // Thêm lịch sử trò chuyện vào context
             const messages = [{ role: 'system', content: systemPrompt }];
-            
+
             // Thêm 3 cuộc trò chuyện gần nhất để AI nhớ context
             conversationHistory.slice(-3).forEach(conv => {
                 messages.push({ role: 'user', content: conv.user });
                 messages.push({ role: 'assistant', content: conv.bot });
             });
-            
+
             // Thêm tin nhắn hiện tại
             messages.push({ role: 'user', content: message });
 
@@ -412,10 +412,10 @@ THÔNG TIN NGƯỜI DÙNG:`;
             if (response.ok) {
                 const data = await response.json();
                 const botResponse = data.choices[0].message.content;
-                
+
                 // Lưu cuộc trò chuyện
                 saveConversation(message, botResponse);
-                
+
                 return botResponse;
             } else {
                 console.log('Groq API error:', response.status);
@@ -433,52 +433,47 @@ THÔNG TIN NGƯỜI DÙNG:`;
 function getIntelligentFallbackResponse(message) {
     const userMemory = getUserMemory();
     const conversationHistory = getConversationHistory();
-    
+
     // Tạo phản hồi thông minh dựa trên bộ nhớ
     let response = "";
-    
+
     // Cá nhân hóa phản hồi nếu có tên
     const greeting = userMemory.name ? `${userMemory.name}, ` : "";
-    
+
     // Phân tích câu hỏi để đưa ra phản hồi phù hợp
     const lowerMessage = message.toLowerCase();
-    
+
     if (lowerMessage.includes('yolo') || lowerMessage.includes('object detection')) {
         response = `${greeting}YOLO (You Only Look Once) là một thuật toán nhận dạng đối tượng thời gian thực rất mạnh mẽ! `;
-        if (userMemory.personal_info?.profession === 'sinh viên') {
+        if (userMemory.personal_info ? .profession === 'sinh viên') {
             response += "Đây là chủ đề rất thú vị cho nghiên cứu học tập của bạn. ";
         }
         response += "Đây là AI demo - hãy thêm API key trong Settings ⚙️ để có câu trả lời chi tiết hơn!";
-    }
-    else if (lowerMessage.includes('machine learning') || lowerMessage.includes('ai')) {
+    } else if (lowerMessage.includes('machine learning') || lowerMessage.includes('ai')) {
         response = `${greeting}Machine Learning và AI là lĩnh vực rất hấp dẫn! `;
         if (userMemory.interests && userMemory.interests.includes('machine learning')) {
             response += "Tôi nhớ bạn có quan tâm đến ML rồi. ";
         }
         response += "Để có trải nghiệm AI thực, hãy cấu hình API key trong Settings!";
-    }
-    else if (lowerMessage.includes('xin chào') || lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+    } else if (lowerMessage.includes('xin chào') || lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
         response = `Xin chào ${userMemory.name || 'bạn'}! `;
         if (conversationHistory.length > 0) {
             response += "Vui lòng gặp lại bạn! ";
         }
         response += "Tôi đang chạy ở chế độ demo. Vào Settings ⚙️ để kết nối AI thực nhé!";
-    }
-    else if (lowerMessage.includes('tên') && lowerMessage.includes('gì')) {
+    } else if (lowerMessage.includes('tên') && lowerMessage.includes('gì')) {
         response = `Tôi là AI Assistant cho YOLO project! `;
         if (userMemory.name) {
             response += `Còn bạn là ${userMemory.name} đúng không? `;
         }
         response += "Đây là phiên bản demo - thêm API key để có trải nghiệm đầy đủ!";
-    }
-    else if (lowerMessage.includes('cảm ơn') || lowerMessage.includes('thank')) {
+    } else if (lowerMessage.includes('cảm ơn') || lowerMessage.includes('thank')) {
         response = `${greeting}Rất vui được giúp đỡ bạn! `;
         if (userMemory.interests && userMemory.interests.length > 0) {
             response += `Hy vọng thông tin về ${userMemory.interests[0]} hữu ích với bạn. `;
         }
         response += "Đây là AI demo - Settings ⚙️ để trải nghiệm AI thực!";
-    }
-    else {
+    } else {
         // Phản hồi chung thông minh
         const responses = [
             `${greeting}Đây là phản hồi từ AI mô phỏng về: "${message}". Hãy mở Settings ⚙️ để thêm API key và có câu trả lời chi tiết!`,
@@ -486,13 +481,13 @@ function getIntelligentFallbackResponse(message) {
             `${greeting}Câu hỏi thú vị! Để có phản hồi chuyên sâu, hãy thêm API key trong Settings.`,
             `${greeting}Rất vui được trao đổi với bạn! Đây là chế độ demo - Settings ⚙️ để kết nối AI thực.`
         ];
-        
+
         response = responses[Math.floor(Math.random() * responses.length)];
     }
-    
+
     // Lưu cuộc trò chuyện
     saveConversation(message, response);
-    
+
     return response;
 }
 
@@ -500,19 +495,19 @@ function getIntelligentFallbackResponse(message) {
 function initializeChatbot() {
     // Khởi tạo bộ nhớ người dùng
     initializeUserMemory();
-    
+
     if (typeof loadSettings === 'function') {
         loadSettings();
     }
-    
+
     // Thêm thông báo chào mừng cá nhân hóa
     setTimeout(() => {
         const savedApiKey = localStorage.getItem('groq_api_key');
         const userMemory = getUserMemory();
         let welcomeMessage;
-        
+
         const greeting = userMemory.name ? `Chào ${userMemory.name}! ` : "🤖 Xin chào! ";
-        
+
         if (savedApiKey) {
             welcomeMessage = `${greeting}Tôi là AI Assistant với Groq API. `;
             if (userMemory.interests && userMemory.interests.length > 0) {
