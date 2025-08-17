@@ -32,23 +32,37 @@ closeChatbot.addEventListener('click', () => {
     chatbotWindow.classList.remove('active');
 });
 
-// Chatbot AI Responses
-const chatbotResponses = {
-    'yolo': 'YOLO (You Only Look Once) là một thuật toán nhận dạng đối tượng thời gian thực được phát triển bởi Joseph Redmon. Nó có thể phát hiện và phân loại nhiều đối tượng trong một hình ảnh chỉ với một lần nhìn.',
-    'cnn': 'CNN (Convolutional Neural Network) là kiến trúc mạng nơ-ron chuyên biệt cho xử lý dữ liệu có cấu trúc lưới như hình ảnh. Nó sử dụng các lớp tích chập để trích xuất đặc trưng.',
-    'nhận diện': 'Nhận diện đối tượng là quá trình xác định và định vị các đối tượng trong hình ảnh hoặc video. Các thuật toán phổ biến bao gồm R-CNN, SSD, và YOLO.',
-    'ngủ gật': 'Phát hiện ngủ gật là ứng dụng của computer vision để nhận diện trạng thái mệt mỏi của sinh viên trong lớp học, giúp cải thiện chất lượng học tập.',
-    'huấn luyện': 'Quá trình huấn luyện YOLO bao gồm: thu thập dữ liệu, gán nhãn, tiền xử lý, huấn luyện mô hình và đánh giá hiệu suất.',
-    'mAP': 'mAP (Mean Average Precision) là chỉ số đánh giá độ chính xác của mô hình nhận diện đối tượng. Giá trị càng cao càng tốt.',
-    'precision': 'Precision (Độ chính xác) đo lường tỷ lệ dự đoán đúng trong tổng số dự đoán dương tính.',
-    'recall': 'Recall (Độ bao phủ) đo lường tỷ lệ dự đoán đúng trong tổng số trường hợp thực tế dương tính.',
-    'khoa': 'Tôi là Nguyễn Hoàng Anh Khoa, sinh viên năm cuối ngành Công nghệ thông tin tại Đại học Đà Lạt. Đây là dự án nghiên cứu về YOLO của tôi.',
-    'portfolio': 'Bạn có thể xem thêm các dự án khác của tôi tại trang Portfolio chính.',
-    'liên hệ': 'Bạn có thể liên hệ với tôi qua email: nhakhoa1004@gmail.com hoặc số điện thoại: 0395123864'
+// AI Chatbot Configuration
+const AI_CONFIG = {
+    // Sử dụng Hugging Face API (miễn phí)
+    apiUrl: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+    // Hoặc có thể sử dụng OpenAI API nếu có key
+    // apiUrl: 'https://api.openai.com/v1/chat/completions',
+    headers: {
+        'Content-Type': 'application/json',
+    }
 };
 
+// Context cho chatbot về YOLO project
+const CHATBOT_CONTEXT = `
+Bạn là một AI assistant chuyên về dự án YOLO nhận diện sinh viên ngủ gật. 
+Thông tin về dự án:
+- Tên: YOLO AI - Nhận Diện Sinh Viên Ngủ Gật
+- Tác giả: Nguyễn Hoàng Anh Khoa
+- Email: nhakhoa1004@gmail.com
+- Phone: 0395123864
+- Kết quả: mAP 94.2%, Precision 96.8%, Recall 92.1%, Tốc độ 25 FPS
+- Các phiên bản YOLO: v1(2016), v3(2018), v5(2020), v8(2023)
+- Quy trình: Thu thập dữ liệu → Gán nhãn → Tiền xử lý → Huấn luyện → Đánh giá
+
+Hãy trả lời một cách thân thiện và chuyên nghiệp bằng tiếng Việt.
+`;
+
+// Conversation history
+let conversationHistory = [];
+
 // Send message function
-function sendChatbotMessage() {
+async function sendChatbotMessage() {
     const message = chatbotInput.value.trim();
     if (message === '') return;
 
@@ -56,11 +70,27 @@ function sendChatbotMessage() {
     addMessage(message, 'user');
     chatbotInput.value = '';
 
-    // Simulate typing delay
-    setTimeout(() => {
-        const response = getChatbotResponse(message);
+    // Show typing indicator
+    showTypingIndicator();
+
+    try {
+        // Get AI response
+        const response = await getAIResponse(message);
+        hideTypingIndicator();
         addMessage(response, 'bot');
-    }, 1000);
+
+        // Add to conversation history
+        conversationHistory.push({ role: 'user', content: message }, { role: 'assistant', content: response });
+
+        // Keep only last 10 messages to avoid token limit
+        if (conversationHistory.length > 10) {
+            conversationHistory = conversationHistory.slice(-10);
+        }
+    } catch (error) {
+        hideTypingIndicator();
+        console.error('Chatbot error:', error);
+        addMessage('Xin lỗi, tôi gặp một chút vấn đề kỹ thuật. Hãy thử lại sau ít phút.', 'bot');
+    }
 }
 
 // Add message to chat
