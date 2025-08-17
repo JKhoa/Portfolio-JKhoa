@@ -1,0 +1,608 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO - Nhận Diện Sinh Viên Ngủ Gật với Database</title>
+    <link rel="stylesheet" href="blog/webyolo/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .database-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        .database-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        .database-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .database-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .database-image {
+            width: 80px;
+            height: 60px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-brain"></i>
+                <span>YOLO AI + Database</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#demo">Demo Trực Tiếp</a></li>
+                <li><a href="#database">Database</a></li>
+                <li><a href="index.html">← Về Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="demo" class="demo-section">
+        <div class="container">
+            <h2 class="section-title">
+                <i class="fas fa-video"></i> Demo Phát Hiện Ngủ Gật với Database
+            </h2>
+            
+            <div class="demo-container">
+                <div class="video-section">
+                    <div class="video-container">
+                        <video id="webcam" autoplay playsinline></video>
+                        <div class="detection-overlay" id="detectionOverlay"></div>
+                        <div class="status-indicator" id="statusIndicator">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Chưa kết nối camera</span>
+                        </div>
+                    </div>
+
+                    <div class="demo-controls">
+                        <button class="btn btn-warning" id="testCamera">
+                            <i class="fas fa-video"></i> Test Camera
+                        </button>
+                        <button class="btn btn-primary" id="startDemo">
+                            <i class="fas fa-play"></i> Bắt Đầu Demo
+                        </button>
+                        <button class="btn btn-secondary" id="stopDemo" style="display: none;">
+                            <i class="fas fa-stop"></i> Dừng Demo
+                        </button>
+                        <button class="btn btn-info" id="capturePhoto">
+                            <i class="fas fa-camera"></i> Chụp Ảnh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="detection-info">
+                    <div class="info-card">
+                        <h3><i class="fas fa-brain"></i> Trạng Thái Phát Hiện</h3>
+                        <div class="detection-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Trạng thái:</span>
+                                <span class="stat-value" id="detectionStatus">Đang chờ...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Độ tin cậy:</span>
+                                <span class="stat-value" id="confidence">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">FPS:</span>
+                                <span class="stat-value" id="fps">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Database:</span>
+                                <span class="stat-value" id="dbStatus">Chưa kết nối</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-cog"></i> Cài Đặt</h3>
+                        <div class="setting-group">
+                            <label for="autoSave">Tự động lưu:</label>
+                            <select id="autoSave">
+                                <option value="true">Bật</option>
+                                <option value="false">Tắt</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <button class="btn btn-warning" id="resetDemo">
+                                <i class="fas fa-refresh"></i> Reset Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="database" class="database-section">
+        <div class="container">
+            <h2 class="section-title">
+                <i class="fas fa-database"></i> Database Lưu Trữ
+            </h2>
+            
+            <div style="text-align: right; margin-bottom: 20px;">
+                <button class="btn btn-info" id="refreshDatabase">
+                    <i class="fas fa-sync"></i> Làm Mới
+                </button>
+                <button class="btn btn-danger" id="clearDatabase">
+                    <i class="fas fa-trash"></i> Xóa Tất Cả
+                </button>
+            </div>
+
+            <div class="database-stats" id="databaseStats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalDetections">0</div>
+                    <div class="stat-label">Tổng số phát hiện</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="sleepingCount">0</div>
+                    <div class="stat-label">Ngủ gật</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="drowsyCount">0</div>
+                    <div class="stat-label">Buồn ngủ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="todayCount">0</div>
+                    <div class="stat-label">Hôm nay</div>
+                </div>
+            </div>
+
+            <div class="database-list" id="databaseList">
+                <p style="text-align: center; color: #cccccc; font-style: italic; padding: 40px;">
+                    Chưa có dữ liệu trong database
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 YOLO AI Project by Nguyễn Hoàng Anh Khoa. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        class YOLODemoClassic {
+            constructor() {
+                this.initializeElements();
+                this.initializeState();
+                this.initializeEvents();
+                this.checkServerConnection();
+            }
+
+            initializeElements() {
+                this.webcam = document.getElementById('webcam');
+                this.detectionOverlay = document.getElementById('detectionOverlay');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.startDemo = document.getElementById('startDemo');
+                this.stopDemo = document.getElementById('stopDemo');
+                this.capturePhoto = document.getElementById('capturePhoto');
+                this.testCamera = document.getElementById('testCamera');
+                this.resetDemo = document.getElementById('resetDemo');
+                this.detectionStatus = document.getElementById('detectionStatus');
+                this.confidence = document.getElementById('confidence');
+                this.fps = document.getElementById('fps');
+                this.dbStatus = document.getElementById('dbStatus');
+                this.autoSave = document.getElementById('autoSave');
+                this.refreshDatabase = document.getElementById('refreshDatabase');
+                this.clearDatabase = document.getElementById('clearDatabase');
+                this.databaseList = document.getElementById('databaseList');
+                this.totalDetections = document.getElementById('totalDetections');
+                this.sleepingCount = document.getElementById('sleepingCount');
+                this.drowsyCount = document.getElementById('drowsyCount');
+                this.todayCount = document.getElementById('todayCount');
+            }
+
+            initializeState() {
+                this.isRunning = false;
+                this.stream = null;
+                this.frameCount = 0;
+                this.fpsStartTime = Date.now();
+                this.eyeClosedFrames = 0;
+                this.headDownFrames = 0;
+                this.alertThreshold = 15;
+                this.serverUrl = 'http://localhost:3001';
+            }
+
+            initializeEvents() {
+                this.startDemo?.addEventListener('click', () => this.startDetection());
+                this.stopDemo?.addEventListener('click', () => this.stopDetection());
+                this.capturePhoto?.addEventListener('click', () => this.capturePhoto());
+                this.testCamera?.addEventListener('click', () => this.testCameraAccess());
+                this.resetDemo?.addEventListener('click', () => this.resetDetection());
+                this.refreshDatabase?.addEventListener('click', () => this.loadDatabaseData());
+                this.clearDatabase?.addEventListener('click', () => this.clearDatabaseData());
+            }
+
+            async checkServerConnection() {
+                try {
+                    const response = await fetch(`${this.serverUrl}/api/drowsiness/stats`);
+                    if (response.ok) {
+                        this.updateDBStatus('Đã kết nối', true);
+                        this.loadDatabaseData();
+                    } else {
+                        this.updateDBStatus('Lỗi kết nối', false);
+                    }
+                } catch (error) {
+                    this.updateDBStatus('Không kết nối được', false);
+                    this.showNotification('⚠️ Không thể kết nối đến server. Chạy server trước khi sử dụng demo.', 'warning');
+                }
+            }
+
+            updateDBStatus(text, isConnected) {
+                if (this.dbStatus) {
+                    this.dbStatus.textContent = text;
+                    this.dbStatus.style.color = isConnected ? '#00ff00' : '#ff0000';
+                }
+            }
+
+            async testCameraAccess() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user' },
+                        audio: false
+                    });
+                    this.showNotification('✅ Camera hoạt động bình thường!', 'success');
+                    stream.getTracks().forEach(track => track.stop());
+                } catch (error) {
+                    this.showNotification('❌ Lỗi camera: ' + error.message, 'error');
+                }
+            }
+
+            async startDetection() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user' },
+                        audio: false
+                    });
+
+                    this.stream = stream;
+                    this.webcam.srcObject = stream;
+                    this.isRunning = true;
+                    this.updateStatus('✅ Đang phát hiện...', true);
+                    this.toggleButtons(true);
+                    this.detectionLoop();
+                } catch (error) {
+                    this.showNotification('❌ Lỗi: ' + error.message, 'error');
+                }
+            }
+
+            stopDetection() {
+                this.isRunning = false;
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                }
+                this.updateStatus('Đã dừng', false);
+                this.toggleButtons(false);
+            }
+
+            resetDetection() {
+                this.stopDetection();
+                this.eyeClosedFrames = 0;
+                this.headDownFrames = 0;
+                this.updateDetectionStats('Đã reset', 0);
+            }
+
+            detectionLoop() {
+                if (!this.isRunning) return;
+                this.frameCount++;
+                this.updateFPS();
+                this.simulateDetection();
+                requestAnimationFrame(() => this.detectionLoop());
+            }
+
+            simulateDetection() {
+                const hasFace = Math.random() > 0.1;
+                if (hasFace) {
+                    const eyesClosed = Math.random() > 0.85;
+                    if (eyesClosed) {
+                        this.eyeClosedFrames++;
+                    } else {
+                        this.eyeClosedFrames = 0;
+                    }
+
+                    let status = 'Tỉnh táo';
+                    let confidence = 95;
+                    let alertLevel = 'normal';
+
+                    if (this.eyeClosedFrames > this.alertThreshold) {
+                        status = 'Ngủ gật';
+                        confidence = Math.min(95, 60 + this.eyeClosedFrames * 2);
+                        alertLevel = 'sleeping';
+                    } else if (this.eyeClosedFrames > 5) {
+                        status = 'Buồn ngủ';
+                        confidence = Math.min(85, 50 + this.eyeClosedFrames * 3);
+                        alertLevel = 'drowsy';
+                    }
+
+                    this.updateDetectionStats(status, confidence);
+                    this.drawDetectionBox(alertLevel, confidence);
+
+                    if (alertLevel === 'sleeping' && this.autoSave.value === 'true') {
+                        this.captureAndSaveToDatabase(status, confidence);
+                    }
+                } else {
+                    this.updateDetectionStats('Không phát hiện mặt', 0);
+                }
+            }
+
+            drawDetectionBox(alertLevel, confidence) {
+                if (!this.detectionOverlay) return;
+                this.detectionOverlay.innerHTML = '';
+                
+                const box = document.createElement('div');
+                box.className = `detection-box ${alertLevel}`;
+                box.style.cssText = `
+                    position: absolute;
+                    border: 3px solid ${alertLevel === 'sleeping' ? '#ff0000' : alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00'};
+                    border-radius: 5px;
+                    background: rgba(255,255,255,0.1);
+                    left: 100px;
+                    top: 50px;
+                    width: 200px;
+                    height: 200px;
+                `;
+                
+                const label = document.createElement('div');
+                label.textContent = `${alertLevel.toUpperCase()} (${confidence}%)`;
+                label.style.cssText = `
+                    position: absolute;
+                    top: -25px;
+                    left: 0;
+                    background: rgba(0,0,0,0.8);
+                    color: white;
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    font-size: 12px;
+                    font-weight: bold;
+                `;
+                
+                box.appendChild(label);
+                this.detectionOverlay.appendChild(box);
+            }
+
+            updateStatus(text, isActive) {
+                if (this.statusIndicator) {
+                    const statusText = this.statusIndicator.querySelector('.status-text');
+                    if (statusText) {
+                        statusText.textContent = text;
+                    }
+                }
+            }
+
+            updateDetectionStats(status, confidence) {
+                if (this.detectionStatus) {
+                    this.detectionStatus.textContent = status;
+                }
+                if (this.confidence) {
+                    this.confidence.textContent = confidence + '%';
+                }
+            }
+
+            updateFPS() {
+                const now = Date.now();
+                if (now - this.fpsStartTime >= 1000) {
+                    const currentFPS = Math.round(this.frameCount * 1000 / (now - this.fpsStartTime));
+                    if (this.fps) {
+                        this.fps.textContent = currentFPS;
+                    }
+                    this.frameCount = 0;
+                    this.fpsStartTime = now;
+                }
+            }
+
+            toggleButtons(isRunning) {
+                if (this.startDemo) {
+                    this.startDemo.style.display = isRunning ? 'none' : 'block';
+                }
+                if (this.stopDemo) {
+                    this.stopDemo.style.display = isRunning ? 'block' : 'none';
+                }
+            }
+
+            capturePhoto() {
+                if (!this.isRunning || !this.webcam) {
+                    this.showNotification('❌ Demo chưa chạy hoặc camera chưa sẵn sàng', 'error');
+                    return;
+                }
+                const currentStatus = this.detectionStatus ? this.detectionStatus.textContent : 'Chụp thủ công';
+                const currentConfidence = this.confidence ? parseInt(this.confidence.textContent) : 0;
+                this.captureAndSaveToDatabase(currentStatus, currentConfidence);
+            }
+
+            async captureAndSaveToDatabase(status, confidence) {
+                if (!this.webcam) return;
+
+                try {
+                    const captureCanvas = document.createElement('canvas');
+                    const ctx = captureCanvas.getContext('2d');
+                    captureCanvas.width = this.webcam.videoWidth || 640;
+                    captureCanvas.height = this.webcam.videoHeight || 480;
+                    ctx.drawImage(this.webcam, 0, 0, captureCanvas.width, captureCanvas.height);
+                    const imageData = captureCanvas.toDataURL('image/jpeg', 0.8);
+
+                    const detectionData = {
+                        imageData: imageData,
+                        status: status,
+                        confidence: confidence,
+                        timestamp: new Date().toISOString(),
+                        eyeClosedFrames: this.eyeClosedFrames,
+                        headDownFrames: this.headDownFrames
+                    };
+
+                    const response = await fetch(`${this.serverUrl}/api/drowsiness/save`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(detectionData)
+                    });
+
+                    if (response.ok) {
+                        this.showNotification(`📸 Đã lưu ảnh vào database: ${status}`, 'success');
+                        this.loadDatabaseData();
+                    } else {
+                        throw new Error('Failed to save to database');
+                    }
+                } catch (error) {
+                    this.showNotification('❌ Lỗi khi lưu vào database', 'error');
+                }
+            }
+
+            async loadDatabaseData() {
+                try {
+                    const response = await fetch(`${this.serverUrl}/api/drowsiness/list?limit=20`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.updateDatabaseDisplay(data.data);
+                    }
+
+                    const statsResponse = await fetch(`${this.serverUrl}/api/drowsiness/stats`);
+                    if (statsResponse.ok) {
+                        const stats = await statsResponse.json();
+                        this.updateDatabaseStats(stats.stats);
+                    }
+                } catch (error) {
+                    this.showNotification('❌ Lỗi khi tải dữ liệu database', 'error');
+                }
+            }
+
+            updateDatabaseDisplay(detections) {
+                if (!this.databaseList) return;
+
+                if (detections.length === 0) {
+                    this.databaseList.innerHTML = '<p style="text-align: center; color: #cccccc; font-style: italic; padding: 40px;">Chưa có dữ liệu trong database</p>';
+                    return;
+                }
+
+                const databaseHTML = detections.map(detection => `
+                    <div class="database-item">
+                        <img src="${this.serverUrl}/api/drowsiness/image/${detection.imageFile}" 
+                             alt="Drowsiness ${detection.status}" 
+                             class="database-image">
+                        <div class="database-info">
+                            <div style="font-size: 0.9rem; color: #cccccc;">${detection.formattedTime}</div>
+                            <div style="font-weight: bold; margin: 5px 0; color: ${detection.status === 'Ngủ gật' ? '#ff4444' : '#ffaa00'}">
+                                ${detection.status}
+                            </div>
+                            <div>Độ tin cậy: ${detection.confidence}%</div>
+                        </div>
+                        <div class="database-actions">
+                            <button class="btn btn-small btn-danger" onclick="yoloDemo.deleteDetection('${detection.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                this.databaseList.innerHTML = databaseHTML;
+            }
+
+            updateDatabaseStats(stats) {
+                if (this.totalDetections) this.totalDetections.textContent = stats.total;
+                if (this.sleepingCount) this.sleepingCount.textContent = stats.sleeping;
+                if (this.drowsyCount) this.drowsyCount.textContent = stats.drowsy;
+                if (this.todayCount) this.todayCount.textContent = stats.today;
+            }
+
+            async deleteDetection(id) {
+                if (!confirm('Bạn có chắc muốn xóa detection này?')) return;
+
+                try {
+                    const response = await fetch(`${this.serverUrl}/api/drowsiness/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        this.showNotification('🗑️ Đã xóa detection thành công', 'success');
+                        this.loadDatabaseData();
+                    }
+                } catch (error) {
+                    this.showNotification('❌ Lỗi khi xóa detection', 'error');
+                }
+            }
+
+            async clearDatabaseData() {
+                if (!confirm('Bạn có chắc muốn xóa TẤT CẢ dữ liệu trong database?')) return;
+
+                try {
+                    const response = await fetch(`${this.serverUrl}/api/drowsiness/list?limit=1000`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        for (const detection of data.data) {
+                            await fetch(`${this.serverUrl}/api/drowsiness/${detection.id}`, {
+                                method: 'DELETE'
+                            });
+                        }
+                        this.showNotification('🗑️ Đã xóa tất cả dữ liệu database', 'success');
+                        this.loadDatabaseData();
+                    }
+                } catch (error) {
+                    this.showNotification('❌ Lỗi khi xóa database', 'error');
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.textContent = message;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 1000;
+                    transform: translateX(400px);
+                    transition: transform 0.3s ease;
+                    max-width: 300px;
+                    background: ${type === 'success' ? 'linear-gradient(45deg, #4CAF50, #45a049)' : 
+                                type === 'error' ? 'linear-gradient(45deg, #f44336, #d32f2f)' :
+                                type === 'warning' ? 'linear-gradient(45deg, #ff9800, #f57c00)' :
+                                'linear-gradient(45deg, #2196F3, #1976D2)'};
+                `;
+
+                document.body.appendChild(notification);
+                setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(400px)';
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+        }
+
+        let yoloDemo;
+        document.addEventListener('DOMContentLoaded', () => {
+            yoloDemo = new YOLODemoClassic();
+        });
+    </script>
+</body>
+</html>

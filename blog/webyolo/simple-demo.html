@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Phát Hiện Ngủ Gật - Simple Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .video-section {
+            text-align: center;
+        }
+
+        #webcam {
+            width: 100%;
+            max-width: 480px;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .detection-overlay {
+            position: relative;
+            top: -10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .test-btn { background: #ffc107; color: #000; }
+        .start-btn { background: #007bff; color: white; }
+        .stop-btn { background: #6c757d; color: white; }
+        .capture-btn { background: #17a2b8; color: white; }
+        .gallery-btn { background: #28a745; color: white; }
+
+        .info-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+
+        .history {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        #historyList {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .history-item {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .demo-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+
+        /* Detection overlay styles */
+        .detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .detection-box {
+            position: absolute;
+            border: 3px solid;
+            border-radius: 5px;
+        }
+
+        .detection-box.normal {
+            border-color: #28a745;
+        }
+
+        .detection-box.drowsy {
+            border-color: #ffc107;
+        }
+
+        .detection-box.sleeping {
+            border-color: #dc3545;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        /* Notification styles */
+        .demo-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 9999;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .demo-notification.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .demo-notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .demo-notification.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Demo Phát Hiện Ngủ Gật</h1>
+        
+        <div class="demo-area">
+            <div class="video-section">
+                <video id="webcam" width="480" height="360" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <div id="detectionOverlay" class="detection-overlay"></div>
+                
+                <div id="statusIndicator" class="status">
+                    <span id="statusText">Chưa kết nối camera</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Thông Tin Phát Hiện</h3>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Trạng thái:</strong><br>
+                        <span id="detectionStatus">Chưa bắt đầu</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Độ tin cậy:</strong><br>
+                        <span id="confidence">0%</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>FPS:</strong><br>
+                        <span id="fps">0</span>
+                    </div>
+                </div>
+
+                <div class="history">
+                    <h4>Lịch sử phát hiện:</h4>
+                    <div id="historyList">Chưa có dữ liệu</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="testCamera" class="btn test-btn">🎥 Test Camera</button>
+            <button id="startDemo" class="btn start-btn">▶️ Bắt Đầu Demo</button>
+            <button id="stopDemo" class="btn stop-btn" style="display: none;">⏹️ Dừng Demo</button>
+            <button id="capturePhoto" class="btn capture-btn">📸 Chụp Ảnh</button>
+            <button id="viewGallery" class="btn gallery-btn">🖼️ Xem Ảnh</button>
+        </div>
+    </div>
+
+    <script>
+        // Simple Drowsiness Detection Demo
+        class SimpleDrowsinessDetector {
+            constructor() {
+                // DOM Elements
+                this.webcam = document.getElementById('webcam');
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+                this.detectionOverlay = document.getElementById('detectionOverlay');
+                this.statusText = document.getElementById('statusText');
+                this.detectionStatus = document.getElementById('detectionStatus');
+                this.confidence = document.getElementById('confidence');
+                this.fps = document.getElementById('fps');
+                this.historyList = document.getElementById('historyList');
+
+                // Buttons
+                this.testCamera = document.getElementById('testCamera');
+                this.startDemo = document.getElementById('startDemo');
+                this.stopDemo = document.getElementById('stopDemo');
+                this.capturePhoto = document.getElementById('capturePhoto');
+                this.viewGallery = document.getElementById('viewGallery');
+
+                // Detection state
+                this.isRunning = false;
+                this.stream = null;
+                this.frameCount = 0;
+                this.fpsStartTime = Date.now();
+                this.detectionHistory = [];
+
+                // Database
+                this.imageDatabase = [];
+                this.DATABASE_KEY = 'simple_drowsiness_images';
+
+                this.initializeEvents();
+                this.loadDatabase();
+                console.log('Simple Drowsiness Detector initialized');
+            }
+
+            initializeEvents() {
+                this.testCamera?.addEventListener('click', () => this.testCameraAccess());
+                this.startDemo?.addEventListener('click', () => this.startDetection());
+                this.stopDemo?.addEventListener('click', () => this.stopDetection());
+                this.capturePhoto?.addEventListener('click', () => this.capturePhoto());
+                this.viewGallery?.addEventListener('click', () => this.showImageGallery());
+            }
+
+            async testCameraAccess() {
+                try {
+                    this.updateStatus('Đang kiểm tra camera...');
+                    
+                    if (!navigator.mediaDevices?.getUserMedia) {
+                        throw new Error('Trình duyệt không hỗ trợ camera');
+                    }
+
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user' }
+                    });
+
+                    this.showNotification('✅ Camera hoạt động bình thường!', 'success');
+                    this.updateStatus('Camera đã sẵn sàng');
+                    stream.getTracks().forEach(track => track.stop());
+
+                } catch (error) {
+                    console.error('Camera test failed:', error);
+                    this.showNotification(`❌ Lỗi camera: ${error.message}`, 'error');
+                    this.updateStatus('Lỗi camera');
+                }
+            }
+
+            async startDetection() {
+                try {
+                    this.updateStatus('Đang kết nối camera...');
+
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: 640, height: 480, facingMode: 'user' }
+                    });
+
+                    this.webcam.srcObject = this.stream;
+                    await new Promise(resolve => {
+                        this.webcam.onloadedmetadata = () => {
+                            this.webcam.play().then(resolve);
+                        };
+                    });
+
+                    if (this.canvas) {
+                        this.canvas.width = this.webcam.videoWidth || 640;
+                        this.canvas.height = this.webcam.videoHeight || 480;
+                    }
+
+                    this.isRunning = true;
+                    this.updateStatus('✅ Đang phát hiện...');
+                    this.toggleButtons(true);
+                    this.showNotification('🎥 Demo đã bắt đầu!', 'success');
+                    
+                    this.detectionLoop();
+
+                } catch (error) {
+                    console.error('Start detection error:', error);
+                    let errorMessage = 'Lỗi không xác định';
+                    
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage = 'Quyền camera bị từ chối';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage = 'Không tìm thấy camera';
+                    }
+                    
+                    this.showNotification(`❌ ${errorMessage}`, 'error');
+                    this.updateStatus('Lỗi kết nối');
+                }
+            }
+
+            stopDetection() {
+                this.isRunning = false;
+                
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                }
+
+                this.updateStatus('Đã dừng');
+                this.toggleButtons(false);
+                this.clearOverlay();
+                this.showNotification('⏹️ Demo đã dừng', 'info');
+            }
+
+            detectionLoop() {
+                if (!this.isRunning) return;
+                
+                this.frameCount++;
+                this.updateFPS();
+                this.simulateDetection();
+                
+                requestAnimationFrame(() => this.detectionLoop());
+            }
+
+            simulateDetection() {
+                if (!this.isRunning) return;
+
+                // Simple random detection simulation
+                const isDrowsy = Math.random() < 0.2; // 20% chance
+                const isSleeping = Math.random() < 0.1; // 10% chance
+                
+                let status = 'Tỉnh táo';
+                let confidence = 95;
+                let alertLevel = 'normal';
+
+                if (isSleeping) {
+                    status = 'Ngủ gật';
+                    confidence = Math.floor(80 + Math.random() * 15);
+                    alertLevel = 'sleeping';
+                } else if (isDrowsy) {
+                    status = 'Buồn ngủ';
+                    confidence = Math.floor(60 + Math.random() * 20);
+                    alertLevel = 'drowsy';
+                }
+
+                this.updateDetectionStats(status, confidence);
+                this.drawDetectionBox(alertLevel);
+
+                // Add to history and auto capture
+                if (alertLevel !== 'normal') {
+                    this.addToHistory(status, confidence);
+                    
+                    if (alertLevel === 'sleeping') {
+                        this.autoCapture(status, confidence);
+                    }
+                }
+            }
+
+            updateDetectionStats(status, confidence) {
+                if (this.detectionStatus) {
+                    this.detectionStatus.textContent = status;
+                }
+                if (this.confidence) {
+                    this.confidence.textContent = confidence + '%';
+                }
+            }
+
+            drawDetectionBox(alertLevel) {
+                if (!this.detectionOverlay) return;
+
+                this.detectionOverlay.innerHTML = '';
+                
+                const box = document.createElement('div');
+                box.className = `detection-box ${alertLevel}`;
+                
+                // Random position for demo
+                const x = 50 + Math.random() * 200;
+                const y = 30 + Math.random() * 100;
+                const width = 150 + Math.random() * 50;
+                const height = 180 + Math.random() * 40;
+                
+                box.style.left = x + 'px';
+                box.style.top = y + 'px';
+                box.style.width = width + 'px';
+                box.style.height = height + 'px';
+                
+                this.detectionOverlay.appendChild(box);
+            }
+
+            clearOverlay() {
+                if (this.detectionOverlay) {
+                    this.detectionOverlay.innerHTML = '';
+                }
+            }
+
+            updateFPS() {
+                const now = Date.now();
+                if (now - this.fpsStartTime >= 1000) {
+                    const currentFPS = Math.round(this.frameCount * 1000 / (now - this.fpsStartTime));
+                    if (this.fps) {
+                        this.fps.textContent = currentFPS;
+                    }
+                    this.frameCount = 0;
+                    this.fpsStartTime = now;
+                }
+            }
+
+            addToHistory(status, confidence) {
+                const timestamp = new Date().toLocaleTimeString('vi-VN');
+                const historyItem = `${timestamp} - ${status} (${confidence}%)`;
+                
+                this.detectionHistory.unshift(historyItem);
+                
+                if (this.detectionHistory.length > 10) {
+                    this.detectionHistory.pop();
+                }
+                
+                this.updateHistoryDisplay();
+            }
+
+            updateHistoryDisplay() {
+                if (!this.historyList) return;
+                
+                if (this.detectionHistory.length === 0) {
+                    this.historyList.innerHTML = 'Chưa có dữ liệu';
+                    return;
+                }
+                
+                const historyHTML = this.detectionHistory.map(item => 
+                    `<div class="history-item">${item}</div>`
+                ).join('');
+                
+                this.historyList.innerHTML = historyHTML;
+            }
+
+            capturePhoto() {
+                if (!this.isRunning || !this.webcam || !this.canvas) {
+                    this.showNotification('❌ Demo chưa chạy', 'error');
+                    return;
+                }
+
+                try {
+                    const captureCanvas = document.createElement('canvas');
+                    const ctx = captureCanvas.getContext('2d');
+                    
+                    captureCanvas.width = this.webcam.videoWidth || 640;
+                    captureCanvas.height = this.webcam.videoHeight || 480;
+                    
+                    ctx.drawImage(this.webcam, 0, 0, captureCanvas.width, captureCanvas.height);
+                    
+                    const imageData = captureCanvas.toDataURL('image/jpeg', 0.8);
+                    const currentTime = new Date();
+                    
+                    const imageRecord = {
+                        id: Date.now().toString(),
+                        timestamp: currentTime.toISOString(),
+                        timeString: currentTime.toLocaleString('vi-VN'),
+                        status: 'Chụp thủ công',
+                        confidence: 100,
+                        imageData: imageData
+                    };
+                    
+                    this.saveToDatabase(imageRecord);
+                    this.showNotification('📸 Đã chụp ảnh!', 'success');
+                    
+                } catch (error) {
+                    console.error('Capture error:', error);
+                    this.showNotification('❌ Lỗi chụp ảnh', 'error');
+                }
+            }
+
+            autoCapture(status, confidence) {
+                if (!this.isRunning) return;
+                
+                try {
+                    const captureCanvas = document.createElement('canvas');
+                    const ctx = captureCanvas.getContext('2d');
+                    
+                    captureCanvas.width = this.webcam.videoWidth || 640;
+                    captureCanvas.height = this.webcam.videoHeight || 480;
+                    
+                    ctx.drawImage(this.webcam, 0, 0, captureCanvas.width, captureCanvas.height);
+                    
+                    const imageData = captureCanvas.toDataURL('image/jpeg', 0.8);
+                    const currentTime = new Date();
+                    
+                    const imageRecord = {
+                        id: Date.now().toString(),
+                        timestamp: currentTime.toISOString(),
+                        timeString: currentTime.toLocaleString('vi-VN'),
+                        status: status,
+                        confidence: confidence,
+                        imageData: imageData
+                    };
+                    
+                    this.saveToDatabase(imageRecord);
+                    this.showNotification(`📸 Tự động chụp: ${status}`, 'info');
+                    
+                } catch (error) {
+                    console.error('Auto capture error:', error);
+                }
+            }
+
+            loadDatabase() {
+                try {
+                    const saved = localStorage.getItem(this.DATABASE_KEY);
+                    this.imageDatabase = saved ? JSON.parse(saved) : [];
+                } catch (error) {
+                    console.error('Load database error:', error);
+                    this.imageDatabase = [];
+                }
+            }
+
+            saveToDatabase(imageRecord) {
+                try {
+                    this.imageDatabase.unshift(imageRecord);
+                    
+                    if (this.imageDatabase.length > 50) {
+                        this.imageDatabase = this.imageDatabase.slice(0, 50);
+                    }
+                    
+                    localStorage.setItem(this.DATABASE_KEY, JSON.stringify(this.imageDatabase));
+                } catch (error) {
+                    console.error('Save database error:', error);
+                }
+            }
+
+            showImageGallery() {
+                if (this.imageDatabase.length === 0) {
+                    this.showNotification('📷 Chưa có ảnh nào', 'info');
+                    return;
+                }
+
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.9); z-index: 10000;
+                    display: flex; align-items: center; justify-content: center;
+                    padding: 20px; box-sizing: border-box;
+                `;
+
+                modal.innerHTML = `
+                    <div style="background: white; border-radius: 10px; max-width: 90vw; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #eee;">
+                            <h3>📷 Thư viện ảnh (${this.imageDatabase.length} ảnh)</h3>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; max-height: 60vh;">
+                            ${this.imageDatabase.map(img => `
+                                <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+                                    <img src="${img.imageData}" style="width: 100%; height: 150px; object-fit: cover;">
+                                    <div style="padding: 10px; font-size: 12px;">
+                                        <div style="color: #666; margin-bottom: 5px;">${img.timeString}</div>
+                                        <div style="font-weight: bold; color: ${img.status === 'Ngủ gật' ? '#dc3545' : img.status === 'Buồn ngủ' ? '#ffc107' : '#28a745'};">${img.status}</div>
+                                        <div style="color: #888; font-size: 11px;">${img.confidence}%</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="padding: 20px; border-top: 1px solid #eee; display: flex; gap: 10px;">
+                            <button onclick="window.simpleDrowsinessDetector.clearDatabase(); this.parentElement.parentElement.parentElement.remove();" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">🗑️ Xóa tất cả</button>
+                        </div>
+                    </div>
+                `;
+
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.remove();
+                };
+
+                document.body.appendChild(modal);
+            }
+
+            clearDatabase() {
+                this.imageDatabase = [];
+                localStorage.removeItem(this.DATABASE_KEY);
+                this.showNotification('🗑️ Đã xóa tất cả ảnh', 'info');
+            }
+
+            toggleButtons(isRunning) {
+                if (this.startDemo) this.startDemo.style.display = isRunning ? 'none' : 'inline-block';
+                if (this.stopDemo) this.stopDemo.style.display = isRunning ? 'inline-block' : 'none';
+            }
+
+            updateStatus(text) {
+                if (this.statusText) {
+                    this.statusText.textContent = text;
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `demo-notification ${type}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                        setTimeout(() => notification.remove(), 300);
+                    }
+                }, 3000);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.simpleDrowsinessDetector = new SimpleDrowsinessDetector();
+        });
+    </script>
+</body>
+</html>

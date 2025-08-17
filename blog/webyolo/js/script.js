@@ -834,10 +834,10 @@ class DrowsinessDetector {
         this.fps = document.getElementById('fps');
         this.historyList = document.getElementById('historyList');
 
-        // Settings
-        this.sensitivity = document.getElementById('sensitivity');
-        this.sensitivityValue = document.getElementById('sensitivityValue');
-        this.alertMode = document.getElementById('alertMode');
+        // Simplified settings (removed complex settings)
+        this.sensitivity = null; // Removed for simplicity
+        this.sensitivityValue = null;
+        this.alertMode = null;
 
         // Detection state
         this.isRunning = false;
@@ -1316,15 +1316,13 @@ class DrowsinessDetector {
             if (statusText) {
                 statusText.textContent = text;
             }
-
-            this.statusIndicator.className = 'status-indicator';
-            if (isActive) {
-                this.statusIndicator.classList.add('active');
-            }
+            
+            // Simple status styling
+            this.statusIndicator.style.background = isActive 
+                ? 'rgba(40, 167, 69, 0.2)' 
+                : 'rgba(255, 255, 255, 0.1)';
         }
-    }
-
-    updateDetectionStats(status, confidence) {
+    }    updateDetectionStats(status, confidence) {
         if (this.detectionStatus) {
             this.detectionStatus.textContent = status;
         }
@@ -1366,27 +1364,23 @@ class DrowsinessDetector {
 
     updateHistoryDisplay() {
         if (!this.historyList) return;
-
+        
         if (this.detectionHistory.length === 0) {
-            this.historyList.innerHTML = '<p class="no-history">Chưa có dữ liệu phát hiện</p>';
+            this.historyList.innerHTML = 'Chưa có dữ liệu phát hiện';
             return;
         }
-
-        const historyHTML = this.detectionHistory.map(item =>
-            `<div class="history-item">
-                ${item.time} - ${item.status} (${item.confidence}%)
-            </div>`
+        
+        const historyHTML = this.detectionHistory.map(item => 
+            `<div class="history-item">${item.time} - ${item.status} (${item.confidence}%)</div>`
         ).join('');
-
+        
         this.historyList.innerHTML = historyHTML;
-    }
-
-    toggleButtons(isRunning) {
+    }    toggleButtons(isRunning) {
         if (this.startDemo) {
-            this.startDemo.style.display = isRunning ? 'none' : 'block';
+            this.startDemo.style.display = isRunning ? 'none' : 'inline-flex';
         }
         if (this.stopDemo) {
-            this.stopDemo.style.display = isRunning ? 'block' : 'none';
+            this.stopDemo.style.display = isRunning ? 'inline-flex' : 'none';
         }
     }
 
