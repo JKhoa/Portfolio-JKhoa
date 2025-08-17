@@ -63,11 +63,10 @@
     <section id="demo" class="demo-section">
         <div class="container">
             <h2 class="section-title">
-                <i class="fas fa-video"></i>
-                Demo Phát Hiện Ngủ Gật Trực Tiếp
+                <i class="fas fa-video"></i> Demo Phát Hiện Ngủ Gật Trực Tiếp
             </h2>
             <p class="section-subtitle">Trải nghiệm công nghệ AI YOLO phát hiện ngủ gật ngay trên trình duyệt của bạn</p>
-            
+
             <div class="demo-container">
                 <div class="video-section">
                     <div class="video-container">
@@ -79,8 +78,12 @@
                             <span class="status-text">Chưa kết nối camera</span>
                         </div>
                     </div>
-                    
+
                     <div class="demo-controls">
+                        <button class="btn btn-warning" id="testCamera" style="margin-bottom: 10px;">
+                            <i class="fas fa-video"></i> Test Camera
+                        </button>
+                        <br>
                         <button class="btn btn-primary" id="startDemo">
                             <i class="fas fa-play"></i> Bắt Đầu Demo
                         </button>
@@ -95,7 +98,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="detection-info">
                     <div class="info-card">
                         <h3><i class="fas fa-brain"></i> Trạng Thái Phát Hiện</h3>
@@ -113,7 +116,7 @@
                                 <span class="stat-value" id="fps">0</span>
                             </div>
                         </div>
-                        
+
                         <div class="detection-history">
                             <h4>Lịch sử phát hiện:</h4>
                             <div class="history-list" id="historyList">
@@ -121,7 +124,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="info-card">
                         <h3><i class="fas fa-cog"></i> Cài Đặt</h3>
                         <div class="setting-group">
@@ -129,7 +132,7 @@
                             <input type="range" id="sensitivity" min="0.3" max="0.9" step="0.1" value="0.6">
                             <span id="sensitivityValue">0.6</span>
                         </div>
-                        
+
                         <div class="setting-group">
                             <label for="alertMode">Chế độ cảnh báo:</label>
                             <select id="alertMode">
@@ -138,7 +141,7 @@
                                 <option value="both">Cả hai</option>
                             </select>
                         </div>
-                        
+
                         <div class="setting-group">
                             <button class="btn btn-warning" id="resetDemo">
                                 <i class="fas fa-refresh"></i> Reset Demo
@@ -147,7 +150,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="demo-instructions">
                 <h3><i class="fas fa-info-circle"></i> Hướng dẫn sử dụng</h3>
                 <div class="instruction-grid">

@@ -980,7 +980,9 @@ h6 {
     display: flex;
 }
 
+
 /* Live Demo Section */
+
 .demo-section {
     padding: 5rem 0;
     background: var(--secondary-bg);
@@ -1060,8 +1062,13 @@ h6 {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .demo-controls {
@@ -1243,7 +1250,9 @@ h6 {
     line-height: 1.4;
 }
 
+
 /* Detection Overlays */
+
 .detection-box {
     position: absolute;
     border: 3px solid #4CAF50;
@@ -1322,17 +1331,14 @@ h6 {
         left: 20px;
         bottom: 20px;
     }
-    
     /* Demo responsive */
     .demo-container {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
-    
     .demo-controls {
         justify-content: center;
     }
-    
     .instruction-grid {
         grid-template-columns: 1fr;
     }
@@ -1361,22 +1367,18 @@ h6 {
         width: 280px;
         right: -40px;
     }
-    
     /* Demo mobile */
     .demo-section {
         padding: 3rem 0;
     }
-    
     .video-section,
     .info-card {
         padding: 1rem;
     }
-    
     .demo-controls .btn {
         min-width: 100px;
         font-size: 0.8rem;
     }
-    
     .instruction-item {
         flex-direction: column;
         text-align: center;

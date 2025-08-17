@@ -826,18 +826,19 @@ class DrowsinessDetector {
         this.capturePhoto = document.getElementById('capturePhoto');
         this.viewGallery = document.getElementById('viewGallery');
         this.resetDemo = document.getElementById('resetDemo');
-        
+        this.testCamera = document.getElementById('testCamera');
+
         // Status elements
         this.detectionStatus = document.getElementById('detectionStatus');
         this.confidence = document.getElementById('confidence');
         this.fps = document.getElementById('fps');
         this.historyList = document.getElementById('historyList');
-        
+
         // Settings
         this.sensitivity = document.getElementById('sensitivity');
         this.sensitivityValue = document.getElementById('sensitivityValue');
         this.alertMode = document.getElementById('alertMode');
-        
+
         // Detection state
         this.isRunning = false;
         this.stream = null;
@@ -845,37 +846,47 @@ class DrowsinessDetector {
         this.frameCount = 0;
         this.fpsStartTime = Date.now();
         this.detectionHistory = [];
-        
+
         // Face detection parameters
         this.eyeClosedFrames = 0;
         this.headDownFrames = 0;
         this.alertThreshold = 15; // frames
-        
+
         // Database for storing captured images
         this.imageDatabase = [];
         this.DATABASE_KEY = 'drowsiness_detection_images';
-        
+
         // Auto-capture settings
         this.autoCapture = true;
         this.lastCaptureTime = 0;
         this.captureInterval = 3000; // 3 seconds between captures
-        
+
         console.log('DrowsinessDetector initialized');
         console.log('Elements check:', {
             webcam: !!this.webcam,
+            canvas: !!this.canvas,
             startDemo: !!this.startDemo,
             stopDemo: !!this.stopDemo,
-            capturePhoto: !!this.capturePhoto
+            capturePhoto: !!this.capturePhoto,
+            testCamera: !!this.testCamera
         });
-        
+
+        // Check browser compatibility
+        console.log('Browser compatibility:', {
+            getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+            webRTC: !!(window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection),
+            canvas: !!document.createElement('canvas').getContext,
+            video: !!document.createElement('video').canPlayType
+        });
+
         this.initializeEvents();
         this.initializeDetection();
         this.loadDatabase();
     }
-    
+
     initializeEvents() {
         console.log('Initializing events...');
-        
+
         if (this.startDemo) {
             console.log('Adding startDemo listener');
             this.startDemo.addEventListener('click', (e) => {
@@ -886,7 +897,7 @@ class DrowsinessDetector {
         } else {
             console.error('startDemo element not found');
         }
-        
+
         if (this.stopDemo) {
             this.stopDemo.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -894,7 +905,7 @@ class DrowsinessDetector {
                 this.stopDetection();
             });
         }
-        
+
         if (this.capturePhoto) {
             this.capturePhoto.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -902,7 +913,7 @@ class DrowsinessDetector {
                 this.capturePhoto();
             });
         }
-        
+
         if (this.viewGallery) {
             this.viewGallery.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -910,7 +921,15 @@ class DrowsinessDetector {
                 this.showImageGallery();
             });
         }
-        
+
+        if (this.testCamera) {
+            this.testCamera.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Test camera clicked');
+                this.testCameraAccess();
+            });
+        }
+
         if (this.resetDemo) {
             this.resetDemo.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -918,7 +937,7 @@ class DrowsinessDetector {
                 this.resetDetection();
             });
         }
-        
+
         if (this.sensitivity) {
             this.sensitivity.addEventListener('input', (e) => {
                 if (this.sensitivityValue) {
@@ -927,7 +946,7 @@ class DrowsinessDetector {
             });
         }
     }
-    
+
     // Database management methods
     loadDatabase() {
         try {
@@ -940,7 +959,7 @@ class DrowsinessDetector {
             this.imageDatabase = [];
         }
     }
-    
+
     saveToDatabase(imageData, detectionInfo) {
         const record = {
             id: Date.now(),
@@ -954,14 +973,14 @@ class DrowsinessDetector {
             },
             formatted_time: new Date().toLocaleString('vi-VN')
         };
-        
+
         this.imageDatabase.unshift(record); // Add to beginning
-        
+
         // Keep only last 50 images to avoid storage overflow
         if (this.imageDatabase.length > 50) {
             this.imageDatabase = this.imageDatabase.slice(0, 50);
         }
-        
+
         try {
             localStorage.setItem(this.DATABASE_KEY, JSON.stringify(this.imageDatabase));
             console.log('Saved detection to database:', record.formatted_time);
@@ -976,17 +995,17 @@ class DrowsinessDetector {
             }
         }
     }
-    
+
     clearDatabase() {
         this.imageDatabase = [];
         localStorage.removeItem(this.DATABASE_KEY);
         this.updateImageGallery();
         console.log('Database cleared');
     }
-    
+
     exportDatabase() {
         const dataStr = JSON.stringify(this.imageDatabase, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement('a');
         link.href = url;
@@ -994,92 +1013,182 @@ class DrowsinessDetector {
         link.click();
         URL.revokeObjectURL(url);
     }
-    
+
     initializeDetection() {
         // Khởi tạo face detection (sử dụng một thuật toán đơn giản)
         this.updateStatus('Sẵn sàng bắt đầu', false);
     }
-    
+
+    async testCameraAccess() {
+        try {
+            console.log('Testing camera access...');
+            this.updateStatus('Đang kiểm tra camera...', false);
+
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('getUserMedia not supported');
+            }
+
+            // Test basic camera access
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user' },
+                audio: false
+            });
+
+            console.log('Camera test successful');
+            this.showNotification('✅ Camera hoạt động bình thường! Bạn có thể bắt đầu demo.', 'success');
+            this.updateStatus('Camera đã sẵn sàng', false);
+
+            // Stop test stream
+            stream.getTracks().forEach(track => track.stop());
+
+            // Also test video element
+            if (this.webcam) {
+                this.showNotification('📹 Video element đã sẵn sàng', 'info');
+            } else {
+                this.showNotification('⚠️ Không tìm thấy video element', 'warning');
+            }
+
+        } catch (error) {
+            console.error('Camera test failed:', error);
+            let errorMessage = 'Camera test failed';
+
+            if (error.name === 'NotAllowedError') {
+                errorMessage = '❌ Quyền truy cập camera bị từ chối. Vui lòng cho phép trong browser settings.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage = '❌ Không tìm thấy camera. Vui lòng kết nối camera và thử lại.';
+            } else if (error.name === 'NotReadableError') {
+                errorMessage = '❌ Camera đang được sử dụng bởi ứng dụng khác.';
+            } else if (error.message.includes('getUserMedia not supported')) {
+                errorMessage = '❌ Trình duyệt không hỗ trợ camera. Vui lòng dùng Chrome, Firefox, hoặc Edge.';
+            } else {
+                errorMessage = `❌ Lỗi camera: ${error.message}`;
+            }
+
+            this.updateStatus('Lỗi camera', false);
+            this.showNotification(errorMessage, 'error');
+        }
+    }
+
     async startDetection() {
         try {
             console.log('Starting detection...');
-            
+
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('getUserMedia not supported in this browser');
+            }
+
             // Show camera permission request
             this.updateStatus('Đang yêu cầu quyền truy cập camera...', false);
-            
+
             // Request camera access with error handling
             const constraints = {
-                video: { 
-                    width: { ideal: 640 }, 
-                    height: { ideal: 480 },
+                video: {
+                    width: { ideal: 640, max: 1280 },
+                    height: { ideal: 480, max: 720 },
                     facingMode: 'user'
-                }
+                },
+                audio: false
             };
-            
-            console.log('Requesting camera access...');
+
+            console.log('Requesting camera access with constraints:', constraints);
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('Camera access granted');
-            
-            if (this.webcam) {
-                this.webcam.srcObject = this.stream;
-                
-                // Wait for video to be ready
-                await new Promise((resolve) => {
-                    this.webcam.onloadedmetadata = () => {
-                        console.log('Video metadata loaded');
-                        this.webcam.play().then(resolve).catch(console.error);
-                    };
-                });
+            console.log('Camera access granted, stream:', this.stream);
+
+            if (!this.webcam) {
+                throw new Error('Webcam element not found');
             }
-            
+
+            // Set up video element
+            this.webcam.srcObject = this.stream;
+            this.webcam.muted = true;
+            this.webcam.playsInline = true;
+
+            // Wait for video to be ready
+            await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Video loading timeout'));
+                }, 10000);
+
+                this.webcam.onloadedmetadata = () => {
+                    clearTimeout(timeout);
+                    console.log('Video metadata loaded, dimensions:', this.webcam.videoWidth, 'x', this.webcam.videoHeight);
+                    
+                    this.webcam.play()
+                        .then(() => {
+                            console.log('Video playing successfully');
+                            resolve();
+                        })
+                        .catch(reject);
+                };
+
+                this.webcam.onerror = (error) => {
+                    clearTimeout(timeout);
+                    reject(error);
+                };
+            });
+
             // Setup canvas
             if (this.canvas && this.webcam) {
                 this.canvas.width = this.webcam.videoWidth || 640;
                 this.canvas.height = this.webcam.videoHeight || 480;
                 console.log('Canvas setup:', this.canvas.width, 'x', this.canvas.height);
             }
-            
+
             this.isRunning = true;
             this.updateStatus('✅ Đang phát hiện...', true);
             this.toggleButtons(true);
-            
+
             // Show success notification
             this.showNotification('🎥 Camera đã kết nối thành công! Bắt đầu phát hiện ngủ gật...', 'success');
-            
+
             // Start detection loop
             this.detectionLoop();
-            
+
         } catch (error) {
             console.error('Error starting detection:', error);
             let errorMessage = 'Lỗi không xác định';
-            
+
             if (error.name === 'NotAllowedError') {
                 errorMessage = 'Bạn đã từ chối quyền truy cập camera. Vui lòng cho phép và thử lại.';
             } else if (error.name === 'NotFoundError') {
                 errorMessage = 'Không tìm thấy camera. Vui lòng kiểm tra kết nối camera.';
             } else if (error.name === 'NotReadableError') {
                 errorMessage = 'Camera đang được sử dụng bởi ứng dụng khác.';
+            } else if (error.name === 'OverconstrainedError') {
+                errorMessage = 'Camera không hỗ trợ độ phân giải yêu cầu.';
+            } else if (error.message.includes('getUserMedia not supported')) {
+                errorMessage = 'Trình duyệt không hỗ trợ truy cập camera. Vui lòng sử dụng Chrome, Firefox hoặc Edge.';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = 'Quá thời gian chờ kết nối camera. Vui lòng thử lại.';
             } else {
                 errorMessage = `Lỗi truy cập camera: ${error.message}`;
             }
-            
+
             this.updateStatus('❌ ' + errorMessage, false);
             this.showNotification(errorMessage, 'error');
+            
+            // Clean up on error
+            if (this.stream) {
+                this.stream.getTracks().forEach(track => track.stop());
+                this.stream = null;
+            }
         }
     }
-    
+
     stopDetection() {
         this.isRunning = false;
-        
+
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
         }
-        
+
         this.updateStatus('Đã dừng', false);
         this.toggleButtons(false);
         this.clearOverlay();
     }
-    
+
     resetDetection() {
         this.stopDetection();
         this.detectionHistory = [];
@@ -1088,49 +1197,49 @@ class DrowsinessDetector {
         this.updateHistoryDisplay();
         this.updateDetectionStats('Đã reset', 0);
     }
-    
+
     detectionLoop() {
         if (!this.isRunning) return;
-        
+
         this.frameCount++;
         this.updateFPS();
-        
+
         // Simulate face detection (thay thế bằng AI model thực)
         this.simulateDetection();
-        
+
         // Continue loop
         requestAnimationFrame(() => this.detectionLoop());
     }
-    
+
     simulateDetection() {
         // Mô phỏng phát hiện khuôn mặt và trạng thái ngủ gật
         const currentTime = Date.now();
-        
+
         // Random simulation cho demo
         const hasFace = Math.random() > 0.1; // 90% có mặt
-        
+
         if (hasFace) {
             const eyesClosed = Math.random() > 0.85; // 15% nhắm mắt
             const headDown = Math.random() > 0.9; // 10% cúi đầu
-            
+
             // Update counters
             if (eyesClosed) {
                 this.eyeClosedFrames++;
             } else {
                 this.eyeClosedFrames = 0;
             }
-            
+
             if (headDown) {
                 this.headDownFrames++;
             } else {
                 this.headDownFrames = 0;
             }
-            
+
             // Determine status
             let status = 'Tỉnh táo';
             let confidence = 95;
             let alertLevel = 'normal';
-            
+
             if (this.eyeClosedFrames > this.alertThreshold) {
                 status = 'Ngủ gật';
                 confidence = Math.min(95, 60 + this.eyeClosedFrames * 2);
@@ -1140,91 +1249,91 @@ class DrowsinessDetector {
                 confidence = Math.min(85, 50 + Math.max(this.eyeClosedFrames, this.headDownFrames) * 3);
                 alertLevel = 'drowsy';
             }
-            
+
             this.updateDetectionStats(status, confidence);
             this.drawDetectionBox(alertLevel, confidence);
-            
+
             // Add to history if significant
             if (alertLevel !== 'normal') {
                 this.addToHistory(status, confidence);
             }
-            
+
             // Alert if needed
             if (alertLevel === 'sleeping' && this.alertMode.value !== 'visual') {
                 this.triggerAlert();
             }
-            
+
             // Auto capture image when drowsiness detected
             if (alertLevel === 'sleeping' && this.autoCapture) {
                 this.captureAndSaveImage(new Date(), status, confidence);
             }
-            
+
         } else {
             this.updateDetectionStats('Không phát hiện mặt', 0);
             this.clearOverlay();
         }
     }
-    
+
     drawDetectionBox(alertLevel, confidence) {
         if (!this.detectionOverlay) return;
-        
+
         // Clear previous
         this.detectionOverlay.innerHTML = '';
-        
+
         // Simulate face box position
         const box = document.createElement('div');
         box.className = `detection-box ${alertLevel}`;
-        
+
         // Random position for demo
         const x = 100 + Math.random() * 200;
         const y = 50 + Math.random() * 150;
         const width = 150 + Math.random() * 50;
         const height = 180 + Math.random() * 40;
-        
+
         box.style.left = x + 'px';
         box.style.top = y + 'px';
         box.style.width = width + 'px';
         box.style.height = height + 'px';
-        
+
         // Add label
         const label = document.createElement('div');
         label.className = 'detection-label';
         label.textContent = `${alertLevel.toUpperCase()} (${confidence}%)`;
         box.appendChild(label);
-        
+
         this.detectionOverlay.appendChild(box);
     }
-    
+
     clearOverlay() {
         if (this.detectionOverlay) {
             this.detectionOverlay.innerHTML = '';
         }
     }
-    
+
     updateStatus(text, isActive) {
         if (this.statusIndicator) {
             const statusText = this.statusIndicator.querySelector('.status-text');
             if (statusText) {
                 statusText.textContent = text;
             }
-            
+
             this.statusIndicator.className = 'status-indicator';
             if (isActive) {
                 this.statusIndicator.classList.add('active');
             }
         }
     }
-    
+
     updateDetectionStats(status, confidence) {
         if (this.detectionStatus) {
             this.detectionStatus.textContent = status;
         }
-        
+
         if (this.confidence) {
             this.confidence.textContent = confidence + '%';
         }
     }
-    
+
     updateFPS() {
         const now = Date.now();
         if (now - this.fpsStartTime >= 1000) {
@@ -1236,7 +1345,7 @@ class DrowsinessDetector {
             this.fpsStartTime = now;
         }
     }
-    
+
     addToHistory(status, confidence) {
         const timestamp = new Date().toLocaleTimeString();
         const historyItem = {
@@ -1244,34 +1353,34 @@ class DrowsinessDetector {
             status: status,
             confidence: confidence
         };
-        
+
         this.detectionHistory.unshift(historyItem);
-        
+
         // Keep only last 10 items
         if (this.detectionHistory.length > 10) {
             this.detectionHistory.pop();
         }
-        
+
         this.updateHistoryDisplay();
     }
-    
+
     updateHistoryDisplay() {
         if (!this.historyList) return;
-        
+
         if (this.detectionHistory.length === 0) {
             this.historyList.innerHTML = '<p class="no-history">Chưa có dữ liệu phát hiện</p>';
             return;
         }
-        
-        const historyHTML = this.detectionHistory.map(item => 
+
+        const historyHTML = this.detectionHistory.map(item =>
             `<div class="history-item">
                 ${item.time} - ${item.status} (${item.confidence}%)
             </div>`
         ).join('');
-        
+
         this.historyList.innerHTML = historyHTML;
     }
-    
+
     toggleButtons(isRunning) {
         if (this.startDemo) {
             this.startDemo.style.display = isRunning ? 'none' : 'block';
@@ -1280,48 +1389,48 @@ class DrowsinessDetector {
             this.stopDemo.style.display = isRunning ? 'block' : 'none';
         }
     }
-    
+
     capturePhoto() {
         if (!this.isRunning || !this.webcam || !this.canvas) {
             this.showNotification('❌ Demo chưa chạy hoặc camera chưa sẵn sàng', 'error');
             return;
         }
-        
+
         try {
             // Manual capture with current status
             const currentTime = new Date();
             const currentStatus = this.detectionStatus ? this.detectionStatus.textContent : 'Chụp thủ công';
             const currentConfidence = this.confidence ? parseInt(this.confidence.textContent) : 0;
-            
+
             this.captureAndSaveImage(currentTime, currentStatus, currentConfidence);
-            
+
         } catch (error) {
             console.error('Error in manual capture:', error);
             this.showNotification('❌ Lỗi khi chụp ảnh', 'error');
         }
     }
-    
+
     // Image capture and database methods
     captureAndSaveImage(timestamp, status = 'Ngủ gật', confidence = 0) {
         if (!this.webcam || !this.canvas) {
             console.error('Camera or canvas not available for capture');
             return;
         }
-        
+
         try {
             const captureCanvas = document.createElement('canvas');
             const ctx = captureCanvas.getContext('2d');
-            
+
             // Set canvas size to match video
             captureCanvas.width = this.webcam.videoWidth || 640;
             captureCanvas.height = this.webcam.videoHeight || 480;
-            
+
             // Draw current video frame
             ctx.drawImage(this.webcam, 0, 0, captureCanvas.width, captureCanvas.height);
-            
+
             // Convert to base64 image
             const imageData = captureCanvas.toDataURL('image/jpeg', 0.8);
-            
+
             // Create image record
             const imageRecord = {
                 id: Date.now().toString(),
@@ -1332,21 +1441,21 @@ class DrowsinessDetector {
                 imageData: imageData,
                 size: Math.round(imageData.length * 0.75) // Approximate size in bytes
             };
-            
+
             // Save to database
             this.saveToDatabase(imageRecord);
-            
+
             // Show notification
             this.showNotification(`📸 Đã chụp ảnh tự động lúc ${imageRecord.timeString}`, 'info');
-            
+
             console.log('Image captured and saved:', imageRecord.id);
-            
+
         } catch (error) {
             console.error('Error capturing image:', error);
             this.showNotification('❌ Lỗi khi chụp ảnh tự động', 'error');
         }
     }
-    
+
     loadDatabase() {
         try {
             const saved = localStorage.getItem(this.DATABASE_KEY);
@@ -1356,25 +1465,25 @@ class DrowsinessDetector {
             return [];
         }
     }
-    
+
     saveToDatabase(imageRecord) {
         try {
             let database = this.loadDatabase();
             database.push(imageRecord);
-            
+
             // Keep only last 50 images to prevent storage overflow
             if (database.length > 50) {
                 database = database.slice(-50);
             }
-            
+
             localStorage.setItem(this.DATABASE_KEY, JSON.stringify(database));
             this.imageDatabase = database;
-            
+
             console.log('Image saved to database. Total images:', database.length);
-            
+
         } catch (error) {
             console.error('Error saving to database:', error);
-            
+
             // If storage is full, try to clear old data
             if (error.name === 'QuotaExceededError') {
                 this.clearOldImages();
@@ -1390,7 +1499,7 @@ class DrowsinessDetector {
             }
         }
     }
-    
+
     clearDatabase() {
         try {
             localStorage.removeItem(this.DATABASE_KEY);
@@ -1401,7 +1510,7 @@ class DrowsinessDetector {
             console.error('Error clearing database:', error);
         }
     }
-    
+
     clearOldImages() {
         try {
             let database = this.loadDatabase();
@@ -1414,38 +1523,38 @@ class DrowsinessDetector {
             console.error('Error clearing old images:', error);
         }
     }
-    
+
     exportDatabase() {
         try {
             const database = this.loadDatabase();
             const dataStr = JSON.stringify(database, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
             const link = document.createElement('a');
             link.href = URL.createObjectURL(dataBlob);
             link.download = `drowsiness_images_${new Date().toISOString().split('T')[0]}.json`;
             link.click();
-            
+
             this.showNotification(`📁 Đã xuất ${database.length} ảnh`, 'success');
-            
+
         } catch (error) {
             console.error('Error exporting database:', error);
             this.showNotification('❌ Lỗi khi xuất dữ liệu', 'error');
         }
     }
-    
+
     showImageGallery() {
-        const database = this.loadDatabase();
-        
-        if (database.length === 0) {
-            this.showNotification('📷 Chưa có ảnh nào được chụp', 'info');
-            return;
-        }
-        
-        // Create gallery modal
-        const modal = document.createElement('div');
-        modal.className = 'image-gallery-modal';
-        modal.innerHTML = `
+            const database = this.loadDatabase();
+
+            if (database.length === 0) {
+                this.showNotification('📷 Chưa có ảnh nào được chụp', 'info');
+                return;
+            }
+
+            // Create gallery modal
+            const modal = document.createElement('div');
+            modal.className = 'image-gallery-modal';
+            modal.innerHTML = `
             <div class="gallery-content">
                 <div class="gallery-header">
                     <h3>📷 Thư viện ảnh (${database.length} ảnh)</h3>
@@ -1600,66 +1709,78 @@ class DrowsinessDetector {
     }
     
     showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `demo-notification ${type}`;
-        notification.textContent = message;
-        
-        // Add notification styles if not exists
-        if (!document.getElementById('notification-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'notification-styles';
-            styles.textContent = `
-                .demo-notification {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    padding: 15px 20px;
-                    border-radius: 5px;
-                    font-weight: bold;
-                    z-index: 9999;
-                    max-width: 300px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                    animation: slideIn 0.3s ease-out;
-                }
-                .demo-notification.success {
-                    background: #d4edda;
-                    color: #155724;
-                    border-left: 4px solid #28a745;
-                }
-                .demo-notification.error {
-                    background: #f8d7da;
-                    color: #721c24;
-                    border-left: 4px solid #dc3545;
-                }
-                .demo-notification.warning {
-                    background: #fff3cd;
-                    color: #856404;
-                    border-left: 4px solid #ffc107;
-                }
-                .demo-notification.info {
-                    background: #d1ecf1;
-                    color: #0c5460;
-                    border-left: 4px solid #17a2b8;
-                }
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-        
-        // Add to page
-        document.body.appendChild(notification);
-        
-        // Auto remove after 4 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.style.animation = 'slideIn 0.3s ease-out reverse';
-                setTimeout(() => notification.remove(), 300);
+        try {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `demo-notification ${type}`;
+            notification.textContent = message;
+
+            // Add notification styles if not exists
+            if (!document.getElementById('notification-styles')) {
+                const styles = document.createElement('style');
+                styles.id = 'notification-styles';
+                styles.textContent = `
+                    .demo-notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        padding: 15px 20px;
+                        border-radius: 5px;
+                        font-weight: bold;
+                        z-index: 9999;
+                        max-width: 300px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        animation: slideIn 0.3s ease-out;
+                        font-family: Arial, sans-serif;
+                        font-size: 14px;
+                        line-height: 1.4;
+                    }
+                    .demo-notification.success {
+                        background: #d4edda;
+                        color: #155724;
+                        border-left: 4px solid #28a745;
+                    }
+                    .demo-notification.error {
+                        background: #f8d7da;
+                        color: #721c24;
+                        border-left: 4px solid #dc3545;
+                    }
+                    .demo-notification.warning {
+                        background: #fff3cd;
+                        color: #856404;
+                        border-left: 4px solid #ffc107;
+                    }
+                    .demo-notification.info {
+                        background: #d1ecf1;
+                        color: #0c5460;
+                        border-left: 4px solid #17a2b8;
+                    }
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styles);
             }
-        }, 4000);
+
+            // Add to page
+            document.body.appendChild(notification);
+
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 4000);
+
+        } catch (error) {
+            // Fallback to console and alert
+            console.log(`${type.toUpperCase()}: ${message}`);
+            if (type === 'error') {
+                alert(`❌ ${message}`);
+            }
+        }
     }
     
     triggerAlert() {
