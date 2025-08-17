@@ -155,8 +155,7 @@ async function getAIResponse(message) {
                 },
                 body: JSON.stringify({
                     model: 'llama3-8b-8192',
-                    messages: [
-                        {
+                    messages: [{
                             role: 'system',
                             content: 'Bạn là AI assistant thông minh cho YOLO project. Trả lời bằng tiếng Việt, thân thiện và hữu ích. Chuyên về computer vision, machine learning, và YOLO object detection.'
                         },
@@ -197,18 +196,18 @@ function initializeChatbot() {
     if (typeof loadSettings === 'function') {
         loadSettings();
     }
-    
+
     // Thêm thông báo chào mừng
     setTimeout(() => {
         const savedApiKey = localStorage.getItem('groq_api_key');
         let welcomeMessage;
-        
+
         if (savedApiKey) {
             welcomeMessage = "🤖 Xin chào! Tôi là AI Assistant với Groq API. Hãy hỏi tôi bất kỳ điều gì về YOLO và computer vision!";
         } else {
             welcomeMessage = "🤖 Xin chào! Tôi đang chạy ở chế độ demo. Để có trải nghiệm AI thực, hãy thêm API key trong Settings ⚙️";
         }
-        
+
         if (chatbotMessages) {
             addMessage(welcomeMessage, 'bot');
         }
