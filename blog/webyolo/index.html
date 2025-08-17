@@ -123,6 +123,11 @@
                                 <p class="no-history">Chưa có dữ liệu phát hiện</p>
                             </div>
                         </div>
+                        
+                        <div class="database-status">
+                            <h4>Database:</h4>
+                            <div class="db-status" id="dbStatus">Chưa kết nối</div>
+                        </div>
                     </div>
 
                     <div class="info-card">
@@ -139,6 +144,14 @@
                                 <option value="visual">Hiển thị trực quan</option>
                                 <option value="sound">Âm thanh</option>
                                 <option value="both">Cả hai</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-group">
+                            <label for="autoSave">Tự động lưu:</label>
+                            <select id="autoSave">
+                                <option value="true">Bật</option>
+                                <option value="false">Tắt</option>
                             </select>
                         </div>
 
@@ -170,6 +183,43 @@
                         <span class="step-number">4</span>
                         <p>Quan sát kết quả phát hiện và độ tin cậy</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Database Section -->
+            <div class="database-section">
+                <h3><i class="fas fa-database"></i> Database Lưu Trữ</h3>
+                
+                <div class="database-controls">
+                    <button class="btn btn-info" id="refreshDatabase">
+                        <i class="fas fa-sync"></i> Làm Mới
+                    </button>
+                    <button class="btn btn-danger" id="clearDatabase">
+                        <i class="fas fa-trash"></i> Xóa Tất Cả
+                    </button>
+                </div>
+
+                <div class="database-stats" id="databaseStats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalDetections">0</div>
+                        <div class="stat-label">Tổng số phát hiện</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="sleepingCount">0</div>
+                        <div class="stat-label">Ngủ gật</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="drowsyCount">0</div>
+                        <div class="stat-label">Buồn ngủ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="todayCount">0</div>
+                        <div class="stat-label">Hôm nay</div>
+                    </div>
+                </div>
+
+                <div class="database-list" id="databaseList">
+                    <p class="no-history">Chưa có dữ liệu trong database</p>
                 </div>
             </div>
         </div>
@@ -421,7 +471,7 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <script src="js/script.js"></script>
+    <script src="js/script_enhanced.js"></script>
 </body>
 
 </html>
