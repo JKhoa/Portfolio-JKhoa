@@ -8,6 +8,42 @@ const chatbotMessages = document.getElementById('chatbotMessages');
 const chatbotInput = document.getElementById('chatbotInput');
 const sendMessage = document.getElementById('sendMessage');
 const backToTop = document.getElementById('backToTop');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettings = document.getElementById('closeSettings');
+const saveSettings = document.getElementById('saveSettings');
+const testAI = document.getElementById('testAI');
+const groqApiKey = document.getElementById('groqApiKey');
+const aiStatus = document.getElementById('aiStatus');
+
+// AI Chatbot Configuration
+const AI_CONFIG = {
+    // Sử dụng Hugging Face API (miễn phí)
+    apiUrl: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+    // Hoặc có thể sử dụng OpenAI API nếu có key
+    // apiUrl: 'https://api.openai.com/v1/chat/completions',
+    headers: {
+        'Content-Type': 'application/json',
+    }
+};
+
+// Context cho chatbot về YOLO project
+const CHATBOT_CONTEXT = `
+Bạn là một AI assistant chuyên về dự án YOLO nhận diện sinh viên ngủ gật. 
+Thông tin về dự án:
+- Tên: YOLO AI - Nhận Diện Sinh Viên Ngủ Gật
+- Tác giả: Nguyễn Hoàng Anh Khoa
+- Email: nhakhoa1004@gmail.com
+- Phone: 0395123864
+- Kết quả: mAP 94.2%, Precision 96.8%, Recall 92.1%, Tốc độ 25 FPS
+- Các phiên bản YOLO: v1(2016), v3(2018), v5(2020), v8(2023)
+- Quy trình: Thu thập dữ liệu → Gán nhãn → Tiền xử lý → Huấn luyện → Đánh giá
+
+Hãy trả lời một cách thân thiện và chuyên nghiệp bằng tiếng Việt.
+`;
+
+// Conversation history
+let conversationHistory = [];
 
 // Mobile Navigation
 hamburger.addEventListener('click', () => {
