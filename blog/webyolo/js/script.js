@@ -493,44 +493,124 @@ function getIntelligentFallbackResponse(message) {
 
 // Initialize chatbot
 function initializeChatbot() {
+    console.log('Starting chatbot initialization...');
+    
     // Khởi tạo bộ nhớ người dùng
-    initializeUserMemory();
+    try {
+        console.log('Initializing user memory...');
+        initializeUserMemory();
+        console.log('User memory initialized successfully');
+    } catch (error) {
+        console.error('Error initializing user memory:', error);
+    }
 
-    if (typeof loadSettings === 'function') {
-        loadSettings();
+    try {
+        console.log('Loading settings...');
+        if (typeof loadSettings === 'function') {
+            loadSettings();
+        }
+        console.log('Settings loaded successfully');
+    } catch (error) {
+        console.error('Error loading settings:', error);
     }
 
     // Thêm thông báo chào mừng cá nhân hóa
     setTimeout(() => {
-        const savedApiKey = localStorage.getItem('groq_api_key');
-        const userMemory = getUserMemory();
-        let welcomeMessage;
+        try {
+            console.log('Adding welcome message...');
+            const savedApiKey = localStorage.getItem('groq_api_key');
+            const userMemory = getUserMemory();
+            let welcomeMessage;
 
-        const greeting = userMemory.name ? `Chào ${userMemory.name}! ` : "🤖 Xin chào! ";
+            const greeting = userMemory && userMemory.name ? `Chào ${userMemory.name}! ` : "🤖 Xin chào! ";
 
-        if (savedApiKey) {
-            welcomeMessage = `${greeting}Tôi là AI Assistant với Groq API. `;
-            if (userMemory.interests && userMemory.interests.length > 0) {
-                welcomeMessage += `Tôi nhớ bạn quan tâm đến ${userMemory.interests.slice(0, 2).join(' và ')}. `;
+            if (savedApiKey) {
+                welcomeMessage = `${greeting}Tôi là AI Assistant với Groq API. `;
+                if (userMemory && userMemory.interests && userMemory.interests.length > 0) {
+                    welcomeMessage += `Tôi nhớ bạn quan tâm đến ${userMemory.interests.slice(0, 2).join(' và ')}. `;
+                }
+                welcomeMessage += "Hãy hỏi tôi bất kỳ điều gì!";
+            } else {
+                welcomeMessage = `${greeting}Tôi đang chạy ở chế độ demo. `;
+                const history = getConversationHistory();
+                if (history && history.length > 0) {
+                    welcomeMessage += "Vui lòng gặp lại bạn! ";
+                }
+                welcomeMessage += "Để có trải nghiệm AI thực, hãy thêm API key trong Settings ⚙️";
             }
-            welcomeMessage += "Hãy hỏi tôi bất kỳ điều gì!";
-        } else {
-            welcomeMessage = `${greeting}Tôi đang chạy ở chế độ demo. `;
-            if (getConversationHistory().length > 0) {
-                welcomeMessage += "Vui lòng gặp lại bạn! ";
-            }
-            welcomeMessage += "Để có trải nghiệm AI thực, hãy thêm API key trong Settings ⚙️";
-        }
 
-        if (chatbotMessages) {
-            addMessage(welcomeMessage, 'bot');
+            if (chatbotMessages) {
+                console.log('Adding welcome message to chat');
+                addMessage(welcomeMessage, 'bot');
+                console.log('Welcome message added successfully');
+            } else {
+                console.error('chatbotMessages element not found');
+            }
+        } catch (error) {
+            console.error('Error in welcome message setup:', error);
         }
     }, 500);
+    
+    console.log('Chatbot initialization completed');
 }
 
-// Initialize AI status on page load
+// Consolidated initialization - single DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded event triggered');
+    
+    // Initialize chatbot
     initializeChatbot();
+    
+    // Initialize demo if on demo page
+    if (document.getElementById('webcam')) {
+        window.drowsinessDetector = new DrowsinessDetector();
+    }
+    
+    // Animation observers
+    const animateElements = document.querySelectorAll('.theory-card, .timeline-item, .step, .metric-card');
+    animateElements.forEach(el => observer.observe(el));
+    
+    // Metrics observers
+    const metricCards = document.querySelectorAll('.metric-card');
+    metricCards.forEach(card => metricsObserver.observe(card));
+    
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.theory-card, .timeline-item, .metric-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-10px) scale(1.02)';
+            card.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Add click effects to buttons
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+
+            this.appendChild(ripple);
+
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+    
+    console.log('All components initialized');
 });
 
 // Simple chatbot responses
@@ -572,6 +652,7 @@ async function sendChatbotMessage() {
 
         addMessage(response, 'bot');
     } catch (error) {
+        console.error('AI Error:', error);
         // Remove typing indicator and show error
         const messages = chatbotMessages.children;
         if (messages.length > 0 && messages[messages.length - 1].textContent.includes('Đang suy nghĩ')) {
@@ -584,6 +665,11 @@ async function sendChatbotMessage() {
 
 // Add message to chat
 function addMessage(text, sender) {
+    if (!chatbotMessages) {
+        console.error('chatbotMessages element not found!');
+        return;
+    }
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}-message`;
 
@@ -679,11 +765,7 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe elements for animation
-document.addEventListener('DOMContentLoaded', () => {
-    const animateElements = document.querySelectorAll('.theory-card, .timeline-item, .step, .metric-card');
-    animateElements.forEach(el => observer.observe(el));
-});
+// Observe elements for animation (moved to main DOMContentLoaded listener)
 
 // Counter animation for metrics
 function animateCounter(element, target, duration = 2000) {
@@ -719,10 +801,7 @@ const metricsObserver = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.5 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    const metricCards = document.querySelectorAll('.metric-card');
-    metricCards.forEach(card => metricsObserver.observe(card));
-});
+// Metrics observer (moved to main DOMContentLoaded listener)
 
 // Parallax effect for hero section
 window.addEventListener('scroll', () => {
@@ -739,43 +818,7 @@ window.addEventListener('load', () => {
     document.body.classList.add('loaded');
 });
 
-// Add some interactive features
-document.addEventListener('DOMContentLoaded', () => {
-    // Add hover effects to cards
-    const cards = document.querySelectorAll('.theory-card, .timeline-item, .metric-card');
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-10px) scale(1.02)';
-        });
-
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-
-    // Add click effects to buttons
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-
-            ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            ripple.classList.add('ripple');
-
-            this.appendChild(ripple);
-
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-    });
-});
+// Interactive features (moved to main DOMContentLoaded listener)
 
 // Add ripple effect CSS dynamically
 const style = document.createElement('style');
@@ -1786,10 +1829,4 @@ class DrowsinessDetector {
     }
 }
 
-// Initialize demo when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if we're on the demo page (has demo elements)
-    if (document.getElementById('webcam')) {
-        window.drowsinessDetector = new DrowsinessDetector();
-    }
-});
+// Demo initialization (moved to main DOMContentLoaded listener)
