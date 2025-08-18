@@ -5,11 +5,6 @@ class EnhancedDrowsinessDetector {
         this.initializeState();
         this.initializeEvents();
         this.checkServerConnection();
-        
-        // Khởi tạo MediaPipe sau khi DOM đã sẵn sàng
-        setTimeout(() => {
-            this.initializeFaceMesh();
-        }, 1000);
     }
 
     initializeElements() {
@@ -83,7 +78,7 @@ class EnhancedDrowsinessDetector {
         this.frameCount = 0;
         this.fpsStartTime = Date.now();
         this.faceStates = new Map(); // Lưu trạng thái cho từng khuôn mặt
-        this.alertThreshold = 10; // Giảm ngưỡng để nhạy hơn
+        this.alertThreshold = 15; // Ngưỡng cảnh báo ổn định trước đây
         this.lastDetectionTime = 0;
         this.serverUrl = 'http://localhost:3001';
         this.detectionHistory = [];
@@ -252,27 +247,8 @@ class EnhancedDrowsinessDetector {
         this.frameCount++;
         this.updateFPS();
         
-        // Sử dụng MediaPipe thay vì mô phỏng
-        if (this.faceMesh && this.webcam && this.webcam.videoWidth > 0) {
-            try {
-                this.faceMesh.send({image: this.webcam});
-                if (this.frameCount % 30 === 0) { // Log mỗi 30 frames
-                    console.log('Sending frame to MediaPipe, video size:', this.webcam.videoWidth, 'x', this.webcam.videoHeight);
-                }
-            } catch (error) {
-                console.error('Error sending frame to MediaPipe:', error);
-                this.simulateDetection(); // Fallback nếu có lỗi
-            }
-        } else {
-            if (this.frameCount % 30 === 0) { // Log mỗi 30 frames
-                console.log('MediaPipe not ready:', {
-                    faceMesh: !!this.faceMesh,
-                    webcam: !!this.webcam,
-                    videoWidth: this.webcam?.videoWidth
-                });
-            }
-            this.simulateDetection(); // Fallback nếu MediaPipe chưa sẵn sàng
-        }
+        // Sử dụng luồng mô phỏng ổn định (không dùng MediaPipe ở demo chính)
+        this.simulateDetection();
         
         requestAnimationFrame(() => this.detectionLoop());
     }
