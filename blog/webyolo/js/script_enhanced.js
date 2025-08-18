@@ -4,8 +4,12 @@ class EnhancedDrowsinessDetector {
         this.initializeElements();
         this.initializeState();
         this.initializeEvents();
-        this.initializeFaceMesh(); // Thêm MediaPipe initialization
         this.checkServerConnection();
+        
+        // Khởi tạo MediaPipe sau khi DOM đã sẵn sàng
+        setTimeout(() => {
+            this.initializeFaceMesh();
+        }, 1000);
     }
 
     initializeElements() {
@@ -200,11 +204,27 @@ class EnhancedDrowsinessDetector {
 
             this.stream = stream;
             this.webcam.srcObject = stream;
+            
+            // Đợi video load xong
+            await new Promise((resolve) => {
+                this.webcam.onloadedmetadata = () => {
+                    console.log('Video loaded, size:', this.webcam.videoWidth, 'x', this.webcam.videoHeight);
+                    resolve();
+                };
+            });
+            
+            // Đảm bảo MediaPipe đã được khởi tạo
+            if (!this.faceMesh) {
+                console.log('Initializing MediaPipe...');
+                await this.initializeFaceMesh();
+            }
+            
             this.isRunning = true;
             this.updateStatus('✅ Đang phát hiện...', true);
             this.toggleButtons(true);
             this.detectionLoop();
         } catch (error) {
+            console.error('Start detection error:', error);
             this.showNotification('❌ Lỗi: ' + error.message, 'error');
         }
     }
@@ -234,8 +254,23 @@ class EnhancedDrowsinessDetector {
         
         // Sử dụng MediaPipe thay vì mô phỏng
         if (this.faceMesh && this.webcam && this.webcam.videoWidth > 0) {
-            this.faceMesh.send({image: this.webcam});
+            try {
+                this.faceMesh.send({image: this.webcam});
+                if (this.frameCount % 30 === 0) { // Log mỗi 30 frames
+                    console.log('Sending frame to MediaPipe, video size:', this.webcam.videoWidth, 'x', this.webcam.videoHeight);
+                }
+            } catch (error) {
+                console.error('Error sending frame to MediaPipe:', error);
+                this.simulateDetection(); // Fallback nếu có lỗi
+            }
         } else {
+            if (this.frameCount % 30 === 0) { // Log mỗi 30 frames
+                console.log('MediaPipe not ready:', {
+                    faceMesh: !!this.faceMesh,
+                    webcam: !!this.webcam,
+                    videoWidth: this.webcam?.videoWidth
+                });
+            }
             this.simulateDetection(); // Fallback nếu MediaPipe chưa sẵn sàng
         }
         
@@ -539,6 +574,7 @@ class EnhancedDrowsinessDetector {
     clearDetectionBox() {
         if (!this.detectionOverlay) return;
         this.detectionOverlay.innerHTML = '';
+        console.log('Detection overlay cleared');
     }
 
     updateStatus(text, isActive) {
@@ -561,6 +597,7 @@ class EnhancedDrowsinessDetector {
         if (this.confidence) {
             this.confidence.textContent = confidence + '%';
         }
+        console.log('Detection stats updated:', status, confidence + '%');
     }
 
     updateFPS() {
@@ -1164,9 +1201,17 @@ Hãy trả lời một cách thông minh và hữu ích:`;
     // ===== MEDIAPIPE FACE DETECTION METHODS =====
     
     async initializeFaceMesh() {
-        if (!this.webcam) return; // Chỉ khởi tạo nếu có webcam
-        
         try {
+            // Kiểm tra xem MediaPipe đã được load chưa
+            if (typeof FaceMesh === 'undefined') {
+                console.log('Waiting for MediaPipe to load...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                if (typeof FaceMesh === 'undefined') {
+                    console.error('MediaPipe FaceMesh not loaded');
+                    return;
+                }
+            }
+
             this.faceMesh = new FaceMesh({
                 locateFile: (file) => {
                     return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
@@ -1193,11 +1238,17 @@ Hãy trả lời một cách thông minh và hữu ích:`;
     onFaceMeshResults(results) {
         if (!this.detectionOverlay) return;
         
+        // Clear overlay
         this.detectionOverlay.innerHTML = '';
         
+        console.log('MediaPipe results:', results);
+        
         if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            console.log(`Detected ${results.multiFaceLandmarks.length} faces`);
+            
             // Xử lý tất cả khuôn mặt
             results.multiFaceLandmarks.forEach((landmarks, index) => {
+                console.log(`Processing face ${index}:`, landmarks.length, 'landmarks');
                 this.analyzeFaceWithMediaPipe(landmarks, index);
                 this.drawFaceLandmarksWithMediaPipe(landmarks, index);
             });
@@ -1206,6 +1257,7 @@ Hãy trả lời một cách thông minh và hữu ích:`;
             this.updateOverallInfo(results.multiFaceLandmarks);
             this.displayOverallStatus(results.multiFaceLandmarks);
         } else {
+            console.log('No faces detected');
             this.updateDetectionStats('Không phát hiện mặt', 0);
             this.clearDetectionBox();
         }
@@ -1361,59 +1413,85 @@ Hãy trả lời một cách thông minh và hữu ích:`;
     }
 
     drawFaceLandmarksWithMediaPipe(landmarks, faceIndex) {
-        // Tính bounding box hình vuông tập trung vào mặt
-        const faceCenter = this.calculateFaceCenter(landmarks);
-        const faceSize = this.calculateOptimalFaceSize(landmarks);
-        
-        // Tạo hình vuông với kích thước tối ưu
-        const squareSize = Math.max(faceSize.width, faceSize.height) * 1.2;
-        const halfSize = squareSize / 2;
-        
-        const left = (faceCenter.x - halfSize) * 100;
-        const top = (faceCenter.y - halfSize) * 100;
-        const size = squareSize * 100;
+        try {
+            // Tính bounding box hình vuông tập trung vào mặt
+            const faceCenter = this.calculateFaceCenter(landmarks);
+            const faceSize = this.calculateOptimalFaceSize(landmarks);
+            
+            // Tạo hình vuông với kích thước tối ưu
+            const squareSize = Math.max(faceSize.width, faceSize.height) * 1.2;
+            const halfSize = squareSize / 2;
+            
+            const left = Math.max(0, Math.min(100, (faceCenter.x - halfSize) * 100));
+            const top = Math.max(0, Math.min(100, (faceCenter.y - halfSize) * 100));
+            const size = Math.min(50, squareSize * 100); // Giới hạn kích thước tối đa
 
-        const faceBox = document.createElement('div');
-        faceBox.className = 'face-box';
-        faceBox.id = `face-box-${faceIndex}`;
-        
-        // Lấy trạng thái của khuôn mặt này
-        const state = this.faceStates.get(faceIndex);
-        if (state) {
-            if (state.alertLevel === 'sleeping') {
-                faceBox.classList.add('sleeping');
-            } else if (state.alertLevel === 'drowsy') {
-                faceBox.classList.add('drowsy');
+            console.log(`Face ${faceIndex} - Center: (${faceCenter.x.toFixed(2)}, ${faceCenter.y.toFixed(2)}), Size: ${size.toFixed(2)}%, Position: (${left.toFixed(2)}%, ${top.toFixed(2)}%)`);
+
+            const faceBox = document.createElement('div');
+            faceBox.className = 'face-box';
+            faceBox.id = `face-box-${faceIndex}`;
+            
+            // Lấy trạng thái của khuôn mặt này
+            const state = this.faceStates.get(faceIndex);
+            if (state) {
+                if (state.alertLevel === 'sleeping') {
+                    faceBox.classList.add('sleeping');
+                } else if (state.alertLevel === 'drowsy') {
+                    faceBox.classList.add('drowsy');
+                }
             }
+
+            faceBox.style.cssText = `
+                position: absolute;
+                left: ${left}%;
+                top: ${top}%;
+                width: ${size}%;
+                height: ${size}%;
+                border: 4px solid #00ff00;
+                border-radius: 12px;
+                background: rgba(0, 255, 0, 0.05);
+                box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+                aspect-ratio: 1;
+                z-index: 1000;
+                pointer-events: none;
+            `;
+
+            // Vẽ nhãn với thông tin chi tiết
+            const label = document.createElement('div');
+            label.className = 'face-label';
+            label.style.cssText = `
+                position: absolute;
+                top: -30px;
+                left: 0;
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 3px;
+                font-size: 11px;
+                font-weight: bold;
+                white-space: nowrap;
+                z-index: 1001;
+            `;
+            
+            if (state) {
+                const statusColor = state.alertLevel === 'sleeping' ? '#ff0000' : 
+                                  state.alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00';
+                label.style.color = statusColor;
+                label.textContent = `Người ${faceIndex + 1}: ${state.status} (${state.confidence}%)`;
+            } else {
+                label.textContent = `Người ${faceIndex + 1}`;
+            }
+            faceBox.appendChild(label);
+
+            this.detectionOverlay.appendChild(faceBox);
+            console.log(`Face box ${faceIndex} added to overlay`);
+
+            // Vẽ landmarks và thông tin chi tiết
+            this.drawDetailedLandmarks(landmarks, faceIndex);
+        } catch (error) {
+            console.error(`Error drawing face ${faceIndex}:`, error);
         }
-
-        faceBox.style.cssText = `
-            left: ${left}%;
-            top: ${top}%;
-            width: ${size}%;
-            height: ${size}%;
-            border-width: 4px;
-            border-style: solid;
-            aspect-ratio: 1;
-        `;
-
-        // Vẽ nhãn với thông tin chi tiết
-        const label = document.createElement('div');
-        label.className = 'face-label';
-        if (state) {
-            const statusColor = state.alertLevel === 'sleeping' ? '#ff0000' : 
-                              state.alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00';
-            label.style.color = statusColor;
-            label.textContent = `Người ${faceIndex + 1}: ${state.status} (${state.confidence}%)`;
-        } else {
-            label.textContent = `Người ${faceIndex + 1}`;
-        }
-        faceBox.appendChild(label);
-
-        this.detectionOverlay.appendChild(faceBox);
-
-        // Vẽ landmarks và thông tin chi tiết
-        this.drawDetailedLandmarks(landmarks, faceIndex);
     }
 
     drawDetailedLandmarks(landmarks, faceIndex) {
@@ -1616,13 +1694,18 @@ Hãy trả lời một cách thông minh và hữu ích:`;
             </div>
         `;
 
-        this.detectionOverlay.appendChild(overallBox);
+        if (this.detectionOverlay) {
+            this.detectionOverlay.appendChild(overallBox);
+            console.log('Overall status box added');
+        }
     }
 
     clearOverallStatus() {
-        const existingBox = this.detectionOverlay.querySelector('.overall-status-box');
-        if (existingBox) {
-            existingBox.remove();
+        if (this.detectionOverlay) {
+            const existingBox = this.detectionOverlay.querySelector('.overall-status-box');
+            if (existingBox) {
+                existingBox.remove();
+            }
         }
     }
 }
