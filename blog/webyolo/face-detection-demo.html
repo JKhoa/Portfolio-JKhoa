@@ -154,14 +154,90 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        .landmark-dot {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #00ff00;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
+                 .landmark-dot {
+             position: absolute;
+             width: 4px;
+             height: 4px;
+             background: #00ff00;
+             border-radius: 50%;
+             transform: translate(-50%, -50%);
+         }
+         
+         /* Cải thiện hiển thị cho nhiều người */
+         .face-box {
+             position: absolute;
+             border: 3px solid #00ff00;
+             border-radius: 5px;
+             background: rgba(0, 255, 0, 0.1);
+             transition: all 0.3s ease;
+         }
+         
+         .face-box.drowsy {
+             border-color: #ffaa00;
+             background: rgba(255, 170, 0, 0.1);
+             box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+         }
+         
+         .face-box.sleeping {
+             border-color: #ff0000;
+             background: rgba(255, 0, 0, 0.1);
+             box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+             animation: pulse-alert 1s infinite;
+         }
+         
+         @keyframes pulse-alert {
+             0%, 100% { opacity: 1; }
+             50% { opacity: 0.7; }
+         }
+         
+         .face-label {
+             position: absolute;
+             top: -30px;
+             left: 0;
+             background: rgba(0, 0, 0, 0.9);
+             color: white;
+             padding: 4px 8px;
+             border-radius: 3px;
+             font-size: 11px;
+             font-weight: bold;
+             white-space: nowrap;
+             z-index: 1000;
+         }
+         
+         /* Thông tin chi tiết cho từng người */
+         .face-info-box {
+             position: absolute;
+             background: rgba(0, 0, 0, 0.9);
+             color: white;
+             padding: 8px;
+             border-radius: 5px;
+             font-size: 10px;
+             max-width: 150px;
+             transform: translate(-50%, -100%);
+             z-index: 1000;
+             border: 1px solid rgba(255, 255, 255, 0.2);
+         }
+         
+         .face-info-box .person-title {
+             font-weight: bold;
+             color: #ffd700;
+             margin-bottom: 4px;
+         }
+         
+         .face-info-box .info-row {
+             display: flex;
+             justify-content: space-between;
+             margin-bottom: 2px;
+         }
+         
+         .face-info-box .info-label {
+             color: #cccccc;
+         }
+         
+         .face-info-box .info-value {
+             color: #ffffff;
+             font-weight: 500;
+         }
         .face-box {
             position: absolute;
             border: 3px solid #00ff00;
@@ -289,10 +365,10 @@
                     });
 
                     this.faceMesh.setOptions({
-                        maxNumFaces: 3,
+                        maxNumFaces: 5, // Tăng số lượng khuôn mặt tối đa
                         refineLandmarks: true,
-                        minDetectionConfidence: 0.5,
-                        minTrackingConfidence: 0.5
+                        minDetectionConfidence: 0.3, // Giảm ngưỡng để phát hiện dễ hơn
+                        minTrackingConfidence: 0.3
                     });
 
                     this.faceMesh.onResults((results) => {
@@ -310,9 +386,8 @@
                 this.isRunning = false;
                 this.frameCount = 0;
                 this.fpsStartTime = Date.now();
-                this.eyeClosedFrames = 0;
-                this.headDownFrames = 0;
-                this.alertThreshold = 15;
+                this.faceStates = new Map(); // Lưu trạng thái cho từng khuôn mặt
+                this.alertThreshold = 10; // Giảm ngưỡng để nhạy hơn
             }
 
             initializeEvents() {
@@ -326,8 +401,8 @@
                     const stream = await navigator.mediaDevices.getUserMedia({
                         video: { 
                             facingMode: 'user',
-                            width: { ideal: 800 },
-                            height: { ideal: 600 }
+                            width: { ideal: 1280 }, // Tăng độ phân giải
+                            height: { ideal: 720 }
                         },
                         audio: false
                     });
@@ -353,8 +428,7 @@
             }
 
             resetDetection() {
-                this.eyeClosedFrames = 0;
-                this.headDownFrames = 0;
+                this.faceStates.clear();
                 this.detectionOverlay.innerHTML = '';
                 this.updateInfo(0, 0, 0, 'Tỉnh táo', 0, 0);
             }
@@ -378,22 +452,22 @@
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                     this.faceCount.textContent = results.multiFaceLandmarks.length;
                     
-                    // Xử lý khuôn mặt chính
-                    const primaryFace = results.multiFaceLandmarks[0];
-                    this.analyzeFace(primaryFace);
-                    
-                    // Vẽ landmarks cho tất cả khuôn mặt
+                    // Xử lý tất cả khuôn mặt
                     results.multiFaceLandmarks.forEach((landmarks, index) => {
+                        this.analyzeFace(landmarks, index);
                         this.drawFaceLandmarks(landmarks, index);
                     });
+
+                    // Cập nhật thông tin tổng hợp
+                    this.updateOverallInfo(results.multiFaceLandmarks);
                 } else {
                     this.faceCount.textContent = '0';
                     this.updateInfo(0, 0, 0, 'Không phát hiện mặt', 0, 0);
                 }
             }
 
-            analyzeFace(landmarks) {
-                // Phân tích mắt
+            analyzeFace(landmarks, faceIndex) {
+                // Phân tích mắt chi tiết hơn
                 const leftEyeOpenness = this.calculateEyeOpenness(landmarks, 'left');
                 const rightEyeOpenness = this.calculateEyeOpenness(landmarks, 'right');
                 const avgEyeOpenness = (leftEyeOpenness + rightEyeOpenness) / 2;
@@ -401,60 +475,79 @@
                 // Phân tích tư thế đầu
                 const headPose = this.calculateHeadPose(landmarks);
 
+                // Lấy hoặc tạo trạng thái cho khuôn mặt này
+                if (!this.faceStates.has(faceIndex)) {
+                    this.faceStates.set(faceIndex, {
+                        eyeClosedFrames: 0,
+                        headDownFrames: 0,
+                        lastUpdate: Date.now()
+                    });
+                }
+                const state = this.faceStates.get(faceIndex);
+
                 // Đánh giá trạng thái
                 let status = 'Tỉnh táo';
                 let confidence = 95;
                 let alertLevel = 'normal';
 
-                // Kiểm tra mắt nhắm
-                if (avgEyeOpenness < 0.3) {
-                    this.eyeClosedFrames++;
+                // Kiểm tra mắt nhắm với ngưỡng thấp hơn
+                if (avgEyeOpenness < 0.25) { // Giảm ngưỡng từ 0.3 xuống 0.25
+                    state.eyeClosedFrames++;
                 } else {
-                    this.eyeClosedFrames = Math.max(0, this.eyeClosedFrames - 1);
+                    state.eyeClosedFrames = Math.max(0, state.eyeClosedFrames - 1);
                 }
 
                 // Kiểm tra đầu nghiêng/cúi
-                if (Math.abs(headPose.tilt) > 15 || Math.abs(headPose.pitch) > 15) {
-                    this.headDownFrames++;
+                if (Math.abs(headPose.tilt) > 12 || Math.abs(headPose.pitch) > 12) { // Giảm ngưỡng từ 15 xuống 12
+                    state.headDownFrames++;
                 } else {
-                    this.headDownFrames = Math.max(0, this.headDownFrames - 1);
+                    state.headDownFrames = Math.max(0, state.headDownFrames - 1);
                 }
 
                 // Đánh giá trạng thái
-                if (this.eyeClosedFrames > this.alertThreshold || this.headDownFrames > this.alertThreshold) {
+                if (state.eyeClosedFrames > this.alertThreshold || state.headDownFrames > this.alertThreshold) {
                     status = 'Ngủ gật';
-                    confidence = Math.min(95, 60 + Math.max(this.eyeClosedFrames, this.headDownFrames) * 2);
+                    confidence = Math.min(95, 60 + Math.max(state.eyeClosedFrames, state.headDownFrames) * 2);
                     alertLevel = 'sleeping';
-                } else if (this.eyeClosedFrames > 5 || this.headDownFrames > 5) {
+                } else if (state.eyeClosedFrames > 3 || state.headDownFrames > 3) { // Giảm ngưỡng từ 5 xuống 3
                     status = 'Buồn ngủ';
-                    confidence = Math.min(85, 50 + Math.max(this.eyeClosedFrames, this.headDownFrames) * 3);
+                    confidence = Math.min(85, 50 + Math.max(state.eyeClosedFrames, state.headDownFrames) * 3);
                     alertLevel = 'drowsy';
                 }
 
-                this.updateInfo(
-                    avgEyeOpenness * 100,
-                    headPose.tilt,
-                    confidence,
-                    status,
-                    this.eyeClosedFrames,
-                    this.headDownFrames
-                );
+                // Cập nhật trạng thái
+                state.status = status;
+                state.confidence = confidence;
+                state.alertLevel = alertLevel;
+                state.eyeOpenness = avgEyeOpenness;
+                state.headTilt = headPose.tilt;
+                state.lastUpdate = Date.now();
+
+                this.faceStates.set(faceIndex, state);
             }
 
             calculateEyeOpenness(landmarks, eye) {
+                // Sử dụng nhiều điểm landmarks hơn để tính toán chính xác hơn
                 const eyeIndices = eye === 'left' ? 
                     [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398] :
                     [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
 
+                // Tính EAR (Eye Aspect Ratio) với nhiều điểm hơn
                 const ear = this.calculateEAR(landmarks, eyeIndices);
-                return ear;
+                
+                // Chuẩn hóa giá trị EAR
+                const normalizedEAR = Math.max(0, Math.min(1, (ear - 0.15) / 0.1)); // Điều chỉnh range
+                
+                return normalizedEAR;
             }
 
             calculateEAR(landmarks, eyeIndices) {
+                // Tính khoảng cách giữa các điểm mắt
                 const A = this.distance(landmarks[eyeIndices[1]], landmarks[eyeIndices[5]]);
                 const B = this.distance(landmarks[eyeIndices[2]], landmarks[eyeIndices[4]]);
                 const C = this.distance(landmarks[eyeIndices[0]], landmarks[eyeIndices[3]]);
 
+                // EAR = (A + B) / (2.0 * C)
                 return (A + B) / (2.0 * C);
             }
 
@@ -463,8 +556,15 @@
                 const leftEye = landmarks[33];
                 const rightEye = landmarks[263];
 
+                // Tính góc nghiêng (roll)
                 const tilt = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x) * 180 / Math.PI;
-                const pitch = (nose.y - (leftEye.y + rightEye.y) / 2) * 100;
+
+                // Tính góc cúi (pitch) - cải thiện
+                const eyeCenter = {
+                    x: (leftEye.x + rightEye.x) / 2,
+                    y: (leftEye.y + rightEye.y) / 2
+                };
+                const pitch = (nose.y - eyeCenter.y) * 100;
 
                 return { tilt, pitch, roll: 0 };
             }
@@ -487,6 +587,17 @@
 
                 const faceBox = document.createElement('div');
                 faceBox.className = 'face-box';
+                
+                // Lấy trạng thái của khuôn mặt này
+                const state = this.faceStates.get(faceIndex);
+                if (state) {
+                    if (state.alertLevel === 'sleeping') {
+                        faceBox.classList.add('sleeping');
+                    } else if (state.alertLevel === 'drowsy') {
+                        faceBox.classList.add('drowsy');
+                    }
+                }
+
                 faceBox.style.cssText = `
                     left: ${minX * 100}%;
                     top: ${minY * 100}%;
@@ -494,31 +605,164 @@
                     height: ${(maxY - minY) * 100}%;
                 `;
 
+                // Vẽ nhãn với thông tin chi tiết
                 const label = document.createElement('div');
                 label.className = 'face-label';
-                label.textContent = `Face ${faceIndex + 1}`;
+                if (state) {
+                    label.textContent = `Người ${faceIndex + 1}: ${state.status} (${state.confidence}%)`;
+                } else {
+                    label.textContent = `Người ${faceIndex + 1}`;
+                }
                 faceBox.appendChild(label);
 
                 this.detectionOverlay.appendChild(faceBox);
 
-                // Vẽ landmarks quan trọng
-                const importantLandmarks = [1, 33, 133, 362, 263, 61, 291];
-                importantLandmarks.forEach(index => {
+                // Vẽ landmarks quan trọng với màu sắc khác nhau
+                this.drawDetailedLandmarks(landmarks, faceIndex);
+            }
+
+            drawDetailedLandmarks(landmarks, faceIndex) {
+                // Vẽ mắt với màu đặc biệt
+                const leftEyeIndices = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398];
+                const rightEyeIndices = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+
+                // Vẽ mắt trái
+                leftEyeIndices.forEach(index => {
                     const point = landmarks[index];
                     const dot = document.createElement('div');
-                    dot.className = 'landmark-dot';
                     dot.style.cssText = `
+                        position: absolute;
                         left: ${point.x * 100}%;
                         top: ${point.y * 100}%;
+                        width: 3px;
+                        height: 3px;
+                        background: #00ffff;
+                        border-radius: 50%;
+                        transform: translate(-50%, -50%);
                     `;
                     this.detectionOverlay.appendChild(dot);
                 });
+
+                // Vẽ mắt phải
+                rightEyeIndices.forEach(index => {
+                    const point = landmarks[index];
+                    const dot = document.createElement('div');
+                    dot.style.cssText = `
+                        position: absolute;
+                        left: ${point.x * 100}%;
+                        top: ${point.y * 100}%;
+                        width: 3px;
+                        height: 3px;
+                        background: #00ffff;
+                        border-radius: 50%;
+                        transform: translate(-50%, -50%);
+                    `;
+                    this.detectionOverlay.appendChild(dot);
+                });
+
+                // Vẽ các điểm quan trọng khác
+                const importantLandmarks = [1, 61, 291]; // Nose, mouth
+                importantLandmarks.forEach(index => {
+                    const point = landmarks[index];
+                    const dot = document.createElement('div');
+                    dot.style.cssText = `
+                        position: absolute;
+                        left: ${point.x * 100}%;
+                        top: ${point.y * 100}%;
+                        width: 4px;
+                        height: 4px;
+                        background: #00ff00;
+                        border-radius: 50%;
+                        transform: translate(-50%, -50%);
+                    `;
+                    this.detectionOverlay.appendChild(dot);
+                });
+
+                // Vẽ thông tin chi tiết cho từng khuôn mặt
+                this.drawFaceInfo(landmarks, faceIndex);
             }
 
-            updateInfo(eyeOpenness, headTilt, confidence, status, eyeClosedFrames, headDownFrames) {
+                         drawFaceInfo(landmarks, faceIndex) {
+                 const state = this.faceStates.get(faceIndex);
+                 if (!state) return;
+
+                 const infoBox = document.createElement('div');
+                 infoBox.className = 'face-info-box';
+                 infoBox.style.cssText = `
+                     left: ${landmarks[1].x * 100}%;
+                     top: ${(landmarks[1].y * 100) - 15}%;
+                 `;
+
+                 infoBox.innerHTML = `
+                     <div class="person-title">Người ${faceIndex + 1}</div>
+                     <div class="info-row">
+                         <span class="info-label">Mắt:</span>
+                         <span class="info-value">${(state.eyeOpenness * 100).toFixed(1)}%</span>
+                     </div>
+                     <div class="info-row">
+                         <span class="info-label">Đầu:</span>
+                         <span class="info-value">${state.headTilt.toFixed(1)}°</span>
+                     </div>
+                     <div class="info-row">
+                         <span class="info-label">Trạng thái:</span>
+                         <span class="info-value">${state.status}</span>
+                     </div>
+                     <div class="info-row">
+                         <span class="info-label">Tin cậy:</span>
+                         <span class="info-value">${state.confidence}%</span>
+                     </div>
+                 `;
+
+                 this.detectionOverlay.appendChild(infoBox);
+             }
+
+            updateOverallInfo(faces) {
+                if (faces.length === 0) {
+                    this.updateInfo(0, 0, 0, 'Không phát hiện mặt', 0, 0);
+                    return;
+                }
+
+                // Tính trung bình của tất cả khuôn mặt
+                let totalEyeOpenness = 0;
+                let totalHeadTilt = 0;
+                let totalConfidence = 0;
+                let sleepingCount = 0;
+                let drowsyCount = 0;
+
+                this.faceStates.forEach((state, index) => {
+                    totalEyeOpenness += state.eyeOpenness;
+                    totalHeadTilt += state.headTilt;
+                    totalConfidence += state.confidence;
+                    
+                    if (state.alertLevel === 'sleeping') sleepingCount++;
+                    else if (state.alertLevel === 'drowsy') drowsyCount++;
+                });
+
+                const avgEyeOpenness = totalEyeOpenness / this.faceStates.size;
+                const avgHeadTilt = totalHeadTilt / this.faceStates.size;
+                const avgConfidence = totalConfidence / this.faceStates.size;
+
+                let overallStatus = 'Tỉnh táo';
+                if (sleepingCount > 0) {
+                    overallStatus = `${sleepingCount} người ngủ gật`;
+                } else if (drowsyCount > 0) {
+                    overallStatus = `${drowsyCount} người buồn ngủ`;
+                }
+
+                this.updateInfo(
+                    avgEyeOpenness * 100,
+                    avgHeadTilt,
+                    avgConfidence,
+                    overallStatus,
+                    this.faceStates.size,
+                    0
+                );
+            }
+
+            updateInfo(eyeOpenness, headTilt, confidence, status, faceCount, headDownFrames) {
                 this.eyeOpenness.textContent = `${eyeOpenness.toFixed(1)}%`;
                 this.headTilt.textContent = `${headTilt.toFixed(1)}°`;
-                this.confidence.textContent = `${confidence}%`;
+                this.confidence.textContent = `${confidence.toFixed(0)}%`;
                 this.drowsinessLevel.textContent = status;
             }
 
