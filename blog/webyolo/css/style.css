@@ -696,6 +696,47 @@ h6 {
     align-self: flex-end;
 }
 
+.typing-indicator {
+    opacity: 0.8;
+}
+
+.typing-indicator .dots {
+    animation: typing 1.5s infinite;
+}
+
+@keyframes typing {
+    0%, 20% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.ai-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff9800;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.connected {
+    background: #4CAF50;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
 .chatbot-input {
     padding: 1rem;
     display: flex;

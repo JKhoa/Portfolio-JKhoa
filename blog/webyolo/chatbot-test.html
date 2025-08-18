@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Test</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: 'Open Sans', sans-serif;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h1 {
+            color: #ffd700;
+            margin-bottom: 30px;
+        }
+        .test-info {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🤖 Chatbot Test</h1>
+        <div class="test-info">
+            <p>Đây là trang test để kiểm tra chatbot hoạt động.</p>
+            <p>Nhìn góc phải dưới màn hình để thấy icon chatbot màu vàng.</p>
+            <p>Click vào icon để mở chatbot và test chức năng.</p>
+        </div>
+        
+        <div class="test-info">
+            <h3>Hướng dẫn test:</h3>
+            <ol style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>Mở Developer Tools (F12)</li>
+                <li>Xem tab Console</li>
+                <li>Click vào icon chatbot</li>
+                <li>Kiểm tra log messages</li>
+                <li>Gõ tin nhắn và test trả lời</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Chatbot -->
+    <div class="chatbot-container">
+        <div class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-comments"></i>
+        </div>
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <h4><i class="fas fa-robot"></i> AI Assistant</h4>
+                <div class="chatbot-controls">
+                    <button class="settings-btn" id="settingsBtn" title="Cài đặt AI">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="close-btn" id="closeChatbot" title="Đóng chatbot">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        Xin chào! Tôi có thể giúp bạn tìm hiểu về YOLO và nhận diện ngủ gật.
+                    </div>
+                </div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="chatbotInput" placeholder="Nhập câu hỏi...">
+                <button id="sendMessage" title="Gửi tin nhắn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-robot"></i> Cài Đặt AI Assistant</h3>
+                <button class="modal-close" id="closeSettings" title="Đóng cài đặt">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="groqApiKey">Groq API Key (Tùy chọn):</label>
+                    <input type="password" id="groqApiKey" placeholder="Nhập Groq API key để sử dụng AI thực">
+                    <small>Để trống để sử dụng AI mô phỏng. <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Lấy key miễn phí</a></small>
+                </div>
+                <div class="setting-group">
+                    <label>Trạng thái AI:</label>
+                    <div class="ai-status" id="aiStatus">
+                        <span class="status-indicator"></span>
+                        <span class="status-text">AI Mô Phỏng (Local)</span>
+                    </div>
+                </div>
+
+                <!-- User Memory Management -->
+                <div class="setting-group">
+                    <label for="userName">Tên của bạn (Tùy chọn):</label>
+                    <input type="text" id="userName" placeholder="Nhập tên để AI nhớ bạn">
+                    <small>AI sẽ gọi tên và cá nhân hóa câu trả lời</small>
+                </div>
+
+                <div class="setting-group">
+                    <label>Bộ nhớ cuộc trò chuyện:</label>
+                    <div class="memory-info" id="memoryInfo">
+                        <div class="memory-stats">
+                            <span id="conversationCount">0 cuộc trò chuyện</span> •
+                            <span id="interestCount">0 sở thích</span>
+                        </div>
+                        <button class="btn btn-small btn-warning" id="clearMemory">Xóa Bộ Nhớ</button>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <button class="btn btn-primary" id="saveSettings">Lưu Cài Đặt</button>
+                    <button class="btn btn-secondary" id="testAI">Test AI</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script_enhanced.js"></script>
+</body>
+</html>

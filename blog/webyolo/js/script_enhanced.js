@@ -8,7 +8,7 @@ class EnhancedDrowsinessDetector {
     }
 
     initializeElements() {
-        // Demo elements
+        // Demo elements (optional - only if they exist)
         this.webcam = document.getElementById('webcam');
         this.canvas = document.getElementById('canvas');
         this.detectionOverlay = document.getElementById('detectionOverlay');
@@ -20,20 +20,20 @@ class EnhancedDrowsinessDetector {
         this.testCamera = document.getElementById('testCamera');
         this.resetDemo = document.getElementById('resetDemo');
         
-        // Detection info elements
+        // Detection info elements (optional)
         this.detectionStatus = document.getElementById('detectionStatus');
         this.confidence = document.getElementById('confidence');
         this.fps = document.getElementById('fps');
         this.historyList = document.getElementById('historyList');
         this.dbStatus = document.getElementById('dbStatus');
         
-        // Settings elements
+        // Settings elements (optional)
         this.sensitivity = document.getElementById('sensitivity');
         this.sensitivityValue = document.getElementById('sensitivityValue');
         this.alertMode = document.getElementById('alertMode');
         this.autoSave = document.getElementById('autoSave');
         
-        // Database elements
+        // Database elements (optional)
         this.refreshDatabase = document.getElementById('refreshDatabase');
         this.clearDatabase = document.getElementById('clearDatabase');
         this.databaseList = document.getElementById('databaseList');
@@ -42,7 +42,7 @@ class EnhancedDrowsinessDetector {
         this.drowsyCount = document.getElementById('drowsyCount');
         this.todayCount = document.getElementById('todayCount');
         
-        // Chatbot elements
+        // Chatbot elements (required)
         this.chatbotToggle = document.getElementById('chatbotToggle');
         this.chatbotWindow = document.getElementById('chatbotWindow');
         this.closeChatbot = document.getElementById('closeChatbot');
@@ -61,6 +61,15 @@ class EnhancedDrowsinessDetector {
         this.conversationCount = document.getElementById('conversationCount');
         this.interestCount = document.getElementById('interestCount');
         this.clearMemory = document.getElementById('clearMemory');
+        
+        // Debug logging
+        console.log('Chatbot elements initialized:');
+        console.log('- chatbotToggle:', !!this.chatbotToggle);
+        console.log('- chatbotWindow:', !!this.chatbotWindow);
+        console.log('- closeChatbot:', !!this.closeChatbot);
+        console.log('- chatbotMessages:', !!this.chatbotMessages);
+        console.log('- chatbotInput:', !!this.chatbotInput);
+        console.log('- sendMessage:', !!this.sendMessage);
     }
 
     initializeState() {
@@ -84,51 +93,70 @@ class EnhancedDrowsinessDetector {
     }
 
     initializeEvents() {
-        // Demo events
-        this.startDemo?.addEventListener('click', () => this.startDetection());
-        this.stopDemo?.addEventListener('click', () => this.stopDetection());
-        this.capturePhoto?.addEventListener('click', () => this.capturePhoto());
-        this.viewGallery?.addEventListener('click', () => this.showImageGallery());
-        this.testCamera?.addEventListener('click', () => this.testCameraAccess());
-        this.resetDemo?.addEventListener('click', () => this.resetDetection());
+        // Demo events (only if elements exist)
+        if (this.startDemo) this.startDemo.addEventListener('click', () => this.startDetection());
+        if (this.stopDemo) this.stopDemo.addEventListener('click', () => this.stopDetection());
+        if (this.capturePhoto) this.capturePhoto.addEventListener('click', () => this.capturePhoto());
+        if (this.viewGallery) this.viewGallery.addEventListener('click', () => this.showImageGallery());
+        if (this.testCamera) this.testCamera.addEventListener('click', () => this.testCameraAccess());
+        if (this.resetDemo) this.resetDemo.addEventListener('click', () => this.resetDetection());
         
-        // Settings events
-        this.sensitivity?.addEventListener('input', (e) => {
-            this.sensitivityValue.textContent = e.target.value;
-            this.alertThreshold = Math.round(parseFloat(e.target.value) * 25);
-        });
+        // Settings events (only if elements exist)
+        if (this.sensitivity && this.sensitivityValue) {
+            this.sensitivity.addEventListener('input', (e) => {
+                this.sensitivityValue.textContent = e.target.value;
+                this.alertThreshold = Math.round(parseFloat(e.target.value) * 25);
+            });
+        }
         
-        // Database events
-        this.refreshDatabase?.addEventListener('click', () => this.loadDatabaseData());
-        this.clearDatabase?.addEventListener('click', () => this.clearDatabaseData());
+        // Database events (only if elements exist)
+        if (this.refreshDatabase) this.refreshDatabase.addEventListener('click', () => this.loadDatabaseData());
+        if (this.clearDatabase) this.clearDatabase.addEventListener('click', () => this.clearDatabaseData());
         
-        // Chatbot events
-        this.chatbotToggle?.addEventListener('click', () => this.toggleChatbot());
-        this.closeChatbot?.addEventListener('click', () => this.closeChatbotWindow());
-        this.sendMessage?.addEventListener('click', () => this.sendChatbotMessage());
-        this.chatbotInput?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.sendChatbotMessage();
-        });
+        // Chatbot events (required)
+        if (this.chatbotToggle) {
+            this.chatbotToggle.addEventListener('click', () => this.toggleChatbot());
+            console.log('Chatbot toggle event listener added');
+        }
+        if (this.closeChatbot) {
+            this.closeChatbot.addEventListener('click', () => this.closeChatbotWindow());
+            console.log('Chatbot close event listener added');
+        }
+        if (this.sendMessage) {
+            this.sendMessage.addEventListener('click', () => this.sendChatbotMessage());
+            console.log('Chatbot send message event listener added');
+        }
+        if (this.chatbotInput) {
+            this.chatbotInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.sendChatbotMessage();
+            });
+            console.log('Chatbot input keypress event listener added');
+        }
         
-        // Settings modal events
-        this.settingsBtn?.addEventListener('click', () => this.openSettings());
-        this.closeSettings?.addEventListener('click', () => this.closeSettings());
-        this.saveSettings?.addEventListener('click', () => this.saveSettings());
-        this.testAI?.addEventListener('click', () => this.testAI());
-        this.clearMemory?.addEventListener('click', () => this.clearUserMemory());
+        // Settings modal events (only if elements exist)
+        if (this.settingsBtn) this.settingsBtn.addEventListener('click', () => this.openSettings());
+        if (this.closeSettings) this.closeSettings.addEventListener('click', () => this.closeSettingsModal());
+        if (this.saveSettings) this.saveSettings.addEventListener('click', () => this.saveSettings());
+        if (this.testAI) this.testAI.addEventListener('click', () => this.testAI());
+        if (this.clearMemory) this.clearMemory.addEventListener('click', () => this.clearUserMemory());
         
         // Close modals on background click
-        this.settingsModal?.addEventListener('click', (e) => {
-            if (e.target === this.settingsModal) this.closeSettings();
-        });
+        if (this.settingsModal) {
+            this.settingsModal.addEventListener('click', (e) => {
+                if (e.target === this.settingsModal) this.closeSettingsModal();
+            });
+        }
     }
 
     async checkServerConnection() {
+        // Only check if we have database elements
+        if (!this.dbStatus) return;
+        
         try {
             const response = await fetch(`${this.serverUrl}/api/drowsiness/stats`);
             if (response.ok) {
                 this.updateDBStatus('Đã kết nối', true);
-                this.loadDatabaseData();
+                if (this.loadDatabaseData) this.loadDatabaseData();
             } else {
                 this.updateDBStatus('Lỗi kết nối', false);
             }
@@ -493,10 +521,15 @@ class EnhancedDrowsinessDetector {
 
     // Chatbot Functions
     toggleChatbot() {
-        if (!this.chatbotWindow) return;
+        console.log('Toggle chatbot clicked!');
+        if (!this.chatbotWindow) {
+            console.error('Chatbot window not found!');
+            return;
+        }
         
         this.isChatbotOpen = !this.isChatbotOpen;
-        this.chatbotWindow.style.display = this.isChatbotOpen ? 'block' : 'none';
+        this.chatbotWindow.classList.toggle('active');
+        console.log('Chatbot is now:', this.isChatbotOpen ? 'open' : 'closed');
         
         if (this.isChatbotOpen) {
             this.chatbotInput?.focus();
@@ -507,7 +540,7 @@ class EnhancedDrowsinessDetector {
         if (!this.chatbotWindow) return;
         
         this.isChatbotOpen = false;
-        this.chatbotWindow.style.display = 'none';
+        this.chatbotWindow.classList.remove('active');
     }
 
     async sendChatbotMessage() {
@@ -520,9 +553,56 @@ class EnhancedDrowsinessDetector {
         this.addChatbotMessage(message, 'user');
         this.chatbotInput.value = '';
 
-        // Get AI response
-        const response = await this.getAIResponse(message);
-        this.addChatbotMessage(response, 'bot');
+        // Show typing indicator
+        const typingId = this.addTypingIndicator();
+
+        try {
+            // Get AI response
+            const response = await this.getAIResponse(message);
+            
+            // Remove typing indicator
+            this.removeTypingIndicator(typingId);
+            
+            // Add AI response
+            this.addChatbotMessage(response, 'bot');
+            
+        } catch (error) {
+            // Remove typing indicator
+            this.removeTypingIndicator(typingId);
+            
+            // Show error message
+            this.addChatbotMessage('❌ Xin lỗi, có lỗi xảy ra khi xử lý câu hỏi của bạn. Vui lòng thử lại!', 'bot');
+            console.error('Chatbot error:', error);
+        }
+    }
+
+    addTypingIndicator() {
+        if (!this.chatbotMessages) return null;
+        
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message typing-indicator';
+        typingDiv.id = 'typing-' + Date.now();
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = '🤖 <span class="typing-dots">Đang suy nghĩ</span><span class="dots">...</span>';
+        
+        typingDiv.appendChild(contentDiv);
+        this.chatbotMessages.appendChild(typingDiv);
+        
+        // Scroll to bottom
+        this.chatbotMessages.scrollTop = this.chatbotMessages.scrollHeight;
+        
+        return typingDiv.id;
+    }
+
+    removeTypingIndicator(typingId) {
+        if (!typingId) return;
+        
+        const typingElement = document.getElementById(typingId);
+        if (typingElement) {
+            typingElement.remove();
+        }
     }
 
     addChatbotMessage(content, type) {
@@ -546,7 +626,96 @@ class EnhancedDrowsinessDetector {
     }
 
     async getAIResponse(message) {
-        // Simple AI responses for demo
+        const groqApiKey = localStorage.getItem('groq_api_key');
+        
+        // Nếu có Groq API key, sử dụng AI thực
+        if (groqApiKey && groqApiKey.trim() !== '') {
+            try {
+                return await this.getGroqResponse(message, groqApiKey);
+            } catch (error) {
+                console.error('Groq API error:', error);
+                // Fallback to simple responses if Groq fails
+                return this.getSimpleResponse(message);
+            }
+        }
+        
+        // Fallback to simple responses
+        return this.getSimpleResponse(message);
+    }
+
+    async getGroqResponse(message, apiKey) {
+        const userMemory = this.getUserMemory();
+        const conversationHistory = this.getConversationHistory();
+        
+        // Tạo context từ bộ nhớ người dùng
+        let context = '';
+        if (userMemory.name) {
+            context += `Tên người dùng: ${userMemory.name}. `;
+        }
+        if (userMemory.interests && userMemory.interests.length > 0) {
+            context += `Sở thích: ${userMemory.interests.join(', ')}. `;
+        }
+        
+        // Lấy 5 cuộc trò chuyện gần nhất để context
+        const recentHistory = conversationHistory.slice(-5);
+        const historyContext = recentHistory.map(item => 
+            `${item.type === 'user' ? 'Người dùng' : 'AI'}: ${item.content}`
+        ).join('\n');
+        
+        const systemPrompt = `Bạn là một AI Assistant thông minh và thân thiện. Bạn LUÔN LUÔN trả lời bằng tiếng Việt trừ khi được yêu cầu rõ ràng trả lời bằng tiếng Anh.
+
+${context}
+
+Bạn có thể trả lời mọi câu hỏi một cách thông minh, chi tiết và hữu ích. Đặc biệt bạn có kiến thức sâu rộng về:
+- YOLO (You Only Look Once) và computer vision
+- Machine Learning và Deep Learning
+- Phát hiện ngủ gật và ứng dụng AI
+- Lập trình và công nghệ
+- Và nhiều lĩnh vực khác
+
+Hãy trả lời một cách tự nhiên, thân thiện và hữu ích. Nếu người dùng có tên, hãy gọi tên họ một cách thân thiện.`;
+
+        const userPrompt = `Lịch sử trò chuyện gần đây:
+${historyContext}
+
+Câu hỏi hiện tại: ${message}
+
+Hãy trả lời một cách thông minh và hữu ích:`;
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama3-8b-8192',
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemPrompt
+                    },
+                    {
+                        role: 'user',
+                        content: userPrompt
+                    }
+                ],
+                max_tokens: 1000,
+                temperature: 0.7,
+                stream: false
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Groq API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    getSimpleResponse(message) {
+        // Simple AI responses for demo (fallback)
         const responses = {
             'yolo': 'YOLO (You Only Look Once) là một thuật toán nhận dạng đối tượng thời gian thực rất nhanh và chính xác.',
             'ngủ gật': 'Phát hiện ngủ gật sử dụng YOLO để nhận diện khuôn mặt và phân tích trạng thái mắt, đầu.',
@@ -563,7 +732,7 @@ class EnhancedDrowsinessDetector {
             }
         }
 
-        return 'Xin chào! Tôi có thể giúp bạn tìm hiểu về YOLO và nhận diện ngủ gật. Hãy hỏi về "yolo", "demo", "camera", "database" hoặc "help".';
+        return 'Xin chào! Tôi có thể giúp bạn tìm hiểu về YOLO và nhận diện ngủ gật. Để có trải nghiệm AI thông minh hơn, hãy thêm Groq API key trong Settings ⚙️';
     }
 
     // Settings Functions
@@ -571,15 +740,15 @@ class EnhancedDrowsinessDetector {
         if (!this.settingsModal) return;
         
         this.isSettingsOpen = true;
-        this.settingsModal.style.display = 'flex';
+        this.settingsModal.classList.add('active');
         this.loadSettings();
     }
 
-    closeSettings() {
+    closeSettingsModal() {
         if (!this.settingsModal) return;
         
         this.isSettingsOpen = false;
-        this.settingsModal.style.display = 'none';
+        this.settingsModal.classList.remove('active');
     }
 
     loadSettings() {
@@ -590,6 +759,23 @@ class EnhancedDrowsinessDetector {
             this.userName.value = this.userMemory?.name || '';
         }
         this.updateMemoryInfo();
+        this.updateAIStatus();
+    }
+
+    updateAIStatus() {
+        if (!this.aiStatus) return;
+        
+        const groqApiKey = localStorage.getItem('groq_api_key');
+        const statusText = this.aiStatus.querySelector('.status-text');
+        const statusIndicator = this.aiStatus.querySelector('.status-indicator');
+        
+        if (groqApiKey && groqApiKey.trim() !== '') {
+            statusText.textContent = 'AI Thực (Groq)';
+            statusIndicator.className = 'status-indicator connected';
+        } else {
+            statusText.textContent = 'AI Mô Phỏng (Local)';
+            statusIndicator.className = 'status-indicator';
+        }
     }
 
     saveSettings() {
@@ -599,12 +785,56 @@ class EnhancedDrowsinessDetector {
         if (this.userName) {
             this.updateUserMemory({ name: this.userName.value });
         }
+        
+        // Update AI status after saving
+        this.updateAIStatus();
+        
         this.showNotification('✅ Đã lưu cài đặt', 'success');
-        this.closeSettings();
+        this.closeSettingsModal();
     }
 
-    testAI() {
-        this.showNotification('🤖 Test AI: Hệ thống AI đang hoạt động bình thường!', 'info');
+    async testAI() {
+        const groqApiKey = localStorage.getItem('groq_api_key');
+        
+        if (!groqApiKey || groqApiKey.trim() === '') {
+            this.showNotification('⚠️ Vui lòng nhập Groq API key để test AI thực', 'warning');
+            return;
+        }
+        
+        try {
+            this.showNotification('🤖 Đang test kết nối Groq API...', 'info');
+            
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${groqApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'llama3-8b-8192',
+                    messages: [
+                        {
+                            role: 'user',
+                            content: 'Xin chào! Hãy trả lời ngắn gọn bằng tiếng Việt để test kết nối.'
+                        }
+                    ],
+                    max_tokens: 100,
+                    temperature: 0.7
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const testResponse = data.choices[0].message.content;
+                this.showNotification(`✅ Test thành công! AI trả lời: "${testResponse}"`, 'success');
+            } else {
+                throw new Error(`API error: ${response.status}`);
+            }
+            
+        } catch (error) {
+            console.error('Test AI error:', error);
+            this.showNotification(`❌ Test thất bại: ${error.message}`, 'error');
+        }
     }
 
     // Memory Functions
@@ -692,10 +922,38 @@ class EnhancedDrowsinessDetector {
     }
 }
 
-// Initialize enhanced demo when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if we're on the demo page (has demo elements)
-    if (document.getElementById('webcam')) {
-        window.drowsinessDetector = new EnhancedDrowsinessDetector();
-    }
-});
+    // Initialize enhanced demo when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, checking for chatbot elements...');
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        if (chatbotToggle) {
+            console.log('Chatbot elements found, initializing...');
+            window.drowsinessDetector = new EnhancedDrowsinessDetector();
+            console.log('EnhancedDrowsinessDetector initialized successfully!');
+            
+            // Add welcome message after initialization
+            setTimeout(() => {
+                if (window.drowsinessDetector && window.drowsinessDetector.chatbotMessages) {
+                    const groqApiKey = localStorage.getItem('groq_api_key');
+                    const userMemory = window.drowsinessDetector.getUserMemory();
+                    
+                    let welcomeMessage = '';
+                    if (userMemory.name) {
+                        welcomeMessage = `Xin chào ${userMemory.name}! `;
+                    } else {
+                        welcomeMessage = 'Xin chào! ';
+                    }
+                    
+                    if (groqApiKey && groqApiKey.trim() !== '') {
+                        welcomeMessage += 'Tôi là AI Assistant với Groq API. Tôi có thể trả lời mọi câu hỏi của bạn một cách thông minh và chi tiết!';
+                    } else {
+                        welcomeMessage += 'Tôi là AI Assistant. Để có trải nghiệm AI thông minh hơn, hãy thêm Groq API key trong Settings ⚙️';
+                    }
+                    
+                    window.drowsinessDetector.addChatbotMessage(welcomeMessage, 'bot');
+                }
+            }, 1000);
+        } else {
+            console.log('No chatbot elements found on this page');
+        }
+    });
