@@ -166,24 +166,37 @@
          /* Cải thiện hiển thị cho nhiều người */
          .face-box {
              position: absolute;
-             border: 3px solid #00ff00;
-             border-radius: 5px;
+             border: 4px solid #00ff00;
+             border-radius: 8px;
              background: rgba(0, 255, 0, 0.1);
              transition: all 0.3s ease;
+             box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
          }
          
          .face-box.drowsy {
              border-color: #ffaa00;
              background: rgba(255, 170, 0, 0.1);
-             box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+             box-shadow: 0 0 12px rgba(255, 170, 0, 0.6);
          }
          
          .face-box.sleeping {
              border-color: #ff0000;
              background: rgba(255, 0, 0, 0.1);
-             box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+             box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
              animation: pulse-alert 1s infinite;
          }
+         
+         /* Màu sắc khác nhau cho từng người */
+         .face-box:nth-child(1) { border-color: #00ff00; }
+         .face-box:nth-child(2) { border-color: #0080ff; }
+         .face-box:nth-child(3) { border-color: #ff00ff; }
+         .face-box:nth-child(4) { border-color: #ffff00; }
+         .face-box:nth-child(5) { border-color: #00ffff; }
+         .face-box:nth-child(6) { border-color: #ff8000; }
+         .face-box:nth-child(7) { border-color: #8000ff; }
+         .face-box:nth-child(8) { border-color: #80ff00; }
+         .face-box:nth-child(9) { border-color: #ff0080; }
+         .face-box:nth-child(10) { border-color: #008080; }
          
          @keyframes pulse-alert {
              0%, 100% { opacity: 1; }
@@ -365,10 +378,10 @@
                     });
 
                     this.faceMesh.setOptions({
-                        maxNumFaces: 5, // Tăng số lượng khuôn mặt tối đa
+                        maxNumFaces: 10, // Tăng lên 10 người
                         refineLandmarks: true,
-                        minDetectionConfidence: 0.3, // Giảm ngưỡng để phát hiện dễ hơn
-                        minTrackingConfidence: 0.3
+                        minDetectionConfidence: 0.2, // Giảm ngưỡng để phát hiện dễ hơn
+                        minTrackingConfidence: 0.2
                     });
 
                     this.faceMesh.onResults((results) => {
@@ -460,71 +473,78 @@
 
                     // Cập nhật thông tin tổng hợp
                     this.updateOverallInfo(results.multiFaceLandmarks);
+                    
+                    // Hiển thị thông tin tổng quan
+                    this.displayOverallStatus(results.multiFaceLandmarks);
                 } else {
                     this.faceCount.textContent = '0';
                     this.updateInfo(0, 0, 0, 'Không phát hiện mặt', 0, 0);
+                    this.clearOverallStatus();
                 }
             }
 
-            analyzeFace(landmarks, faceIndex) {
-                // Phân tích mắt chi tiết hơn
-                const leftEyeOpenness = this.calculateEyeOpenness(landmarks, 'left');
-                const rightEyeOpenness = this.calculateEyeOpenness(landmarks, 'right');
-                const avgEyeOpenness = (leftEyeOpenness + rightEyeOpenness) / 2;
+                         analyzeFace(landmarks, faceIndex) {
+                 // Phân tích mắt chi tiết hơn
+                 const leftEyeOpenness = this.calculateEyeOpenness(landmarks, 'left');
+                 const rightEyeOpenness = this.calculateEyeOpenness(landmarks, 'right');
+                 const avgEyeOpenness = (leftEyeOpenness + rightEyeOpenness) / 2;
 
-                // Phân tích tư thế đầu
-                const headPose = this.calculateHeadPose(landmarks);
+                 // Phân tích tư thế đầu
+                 const headPose = this.calculateHeadPose(landmarks);
 
-                // Lấy hoặc tạo trạng thái cho khuôn mặt này
-                if (!this.faceStates.has(faceIndex)) {
-                    this.faceStates.set(faceIndex, {
-                        eyeClosedFrames: 0,
-                        headDownFrames: 0,
-                        lastUpdate: Date.now()
-                    });
-                }
-                const state = this.faceStates.get(faceIndex);
+                 // Lấy hoặc tạo trạng thái cho khuôn mặt này
+                 if (!this.faceStates.has(faceIndex)) {
+                     this.faceStates.set(faceIndex, {
+                         eyeClosedFrames: 0,
+                         headDownFrames: 0,
+                         lastUpdate: Date.now(),
+                         consecutiveDetections: 0
+                     });
+                 }
+                 const state = this.faceStates.get(faceIndex);
 
-                // Đánh giá trạng thái
-                let status = 'Tỉnh táo';
-                let confidence = 95;
-                let alertLevel = 'normal';
+                 // Đánh giá trạng thái
+                 let status = 'Tỉnh táo';
+                 let confidence = 95;
+                 let alertLevel = 'normal';
 
-                // Kiểm tra mắt nhắm với ngưỡng thấp hơn
-                if (avgEyeOpenness < 0.25) { // Giảm ngưỡng từ 0.3 xuống 0.25
-                    state.eyeClosedFrames++;
-                } else {
-                    state.eyeClosedFrames = Math.max(0, state.eyeClosedFrames - 1);
-                }
+                 // Kiểm tra mắt nhắm với ngưỡng thấp hơn
+                 if (avgEyeOpenness < 0.2) { // Giảm ngưỡng để nhạy hơn
+                     state.eyeClosedFrames++;
+                     state.consecutiveDetections++;
+                 } else {
+                     state.eyeClosedFrames = Math.max(0, state.eyeClosedFrames - 1);
+                     state.consecutiveDetections = Math.max(0, state.consecutiveDetections - 1);
+                 }
 
-                // Kiểm tra đầu nghiêng/cúi
-                if (Math.abs(headPose.tilt) > 12 || Math.abs(headPose.pitch) > 12) { // Giảm ngưỡng từ 15 xuống 12
-                    state.headDownFrames++;
-                } else {
-                    state.headDownFrames = Math.max(0, state.headDownFrames - 1);
-                }
+                 // Kiểm tra đầu nghiêng/cúi
+                 if (Math.abs(headPose.tilt) > 10 || Math.abs(headPose.pitch) > 10) { // Giảm ngưỡng để nhạy hơn
+                     state.headDownFrames++;
+                 } else {
+                     state.headDownFrames = Math.max(0, state.headDownFrames - 1);
+                 }
 
-                // Đánh giá trạng thái
-                if (state.eyeClosedFrames > this.alertThreshold || state.headDownFrames > this.alertThreshold) {
-                    status = 'Ngủ gật';
-                    confidence = Math.min(95, 60 + Math.max(state.eyeClosedFrames, state.headDownFrames) * 2);
-                    alertLevel = 'sleeping';
-                } else if (state.eyeClosedFrames > 3 || state.headDownFrames > 3) { // Giảm ngưỡng từ 5 xuống 3
-                    status = 'Buồn ngủ';
-                    confidence = Math.min(85, 50 + Math.max(state.eyeClosedFrames, state.headDownFrames) * 3);
-                    alertLevel = 'drowsy';
-                }
+                 // Đánh giá trạng thái với logic cải tiến
+                 if (state.eyeClosedFrames > this.alertThreshold || state.headDownFrames > this.alertThreshold) {
+                     status = 'Ngủ gật';
+                     confidence = Math.min(95, 60 + Math.max(state.eyeClosedFrames, state.headDownFrames) * 2);
+                     alertLevel = 'sleeping';
+                 } else if (state.eyeClosedFrames > 2 || state.headDownFrames > 2 || state.consecutiveDetections > 5) {
+                     status = 'Buồn ngủ';
+                     confidence = Math.min(85, 50 + Math.max(state.eyeClosedFrames, state.headDownFrames) * 3);
+                     alertLevel = 'drowsy';
+                 }
 
-                // Cập nhật trạng thái
-                state.status = status;
-                state.confidence = confidence;
-                state.alertLevel = alertLevel;
-                state.eyeOpenness = avgEyeOpenness;
-                state.headTilt = headPose.tilt;
-                state.lastUpdate = Date.now();
+                 // Cập nhật trạng thái
+                 state.status = status;
+                 state.confidence = confidence;
+                 state.alertLevel = alertLevel;
+                 state.eyeOpenness = avgEyeOpenness;
+                 state.headTilt = headPose.tilt;
+                 state.lastUpdate = Date.now();
 
-                this.faceStates.set(faceIndex, state);
-            }
+                 this.faceStates.set(faceIndex, state);
+             }
 
             calculateEyeOpenness(landmarks, eye) {
                 // Sử dụng nhiều điểm landmarks hơn để tính toán chính xác hơn
@@ -587,6 +607,7 @@
 
                 const faceBox = document.createElement('div');
                 faceBox.className = 'face-box';
+                faceBox.id = `face-box-${faceIndex}`;
                 
                 // Lấy trạng thái của khuôn mặt này
                 const state = this.faceStates.get(faceIndex);
@@ -603,12 +624,17 @@
                     top: ${minY * 100}%;
                     width: ${(maxX - minX) * 100}%;
                     height: ${(maxY - minY) * 100}%;
+                    border-width: 4px;
+                    border-style: solid;
                 `;
 
                 // Vẽ nhãn với thông tin chi tiết
                 const label = document.createElement('div');
                 label.className = 'face-label';
                 if (state) {
+                    const statusColor = state.alertLevel === 'sleeping' ? '#ff0000' : 
+                                      state.alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00';
+                    label.style.color = statusColor;
                     label.textContent = `Người ${faceIndex + 1}: ${state.status} (${state.confidence}%)`;
                 } else {
                     label.textContent = `Người ${faceIndex + 1}`;
@@ -759,12 +785,77 @@
                 );
             }
 
-            updateInfo(eyeOpenness, headTilt, confidence, status, faceCount, headDownFrames) {
-                this.eyeOpenness.textContent = `${eyeOpenness.toFixed(1)}%`;
-                this.headTilt.textContent = `${headTilt.toFixed(1)}°`;
-                this.confidence.textContent = `${confidence.toFixed(0)}%`;
-                this.drowsinessLevel.textContent = status;
-            }
+                         updateInfo(eyeOpenness, headTilt, confidence, status, faceCount, headDownFrames) {
+                 this.eyeOpenness.textContent = `${eyeOpenness.toFixed(1)}%`;
+                 this.headTilt.textContent = `${headTilt.toFixed(1)}°`;
+                 this.confidence.textContent = `${confidence.toFixed(0)}%`;
+                 this.drowsinessLevel.textContent = status;
+             }
+
+             displayOverallStatus(faces) {
+                 // Xóa thông tin tổng quan cũ
+                 this.clearOverallStatus();
+                 
+                 // Tạo thông tin tổng quan mới
+                 const overallBox = document.createElement('div');
+                 overallBox.className = 'overall-status-box';
+                 overallBox.style.cssText = `
+                     position: absolute;
+                     top: 10px;
+                     right: 10px;
+                     background: rgba(0, 0, 0, 0.9);
+                     color: white;
+                     padding: 15px;
+                     border-radius: 8px;
+                     font-size: 12px;
+                     max-width: 250px;
+                     border: 2px solid #ffd700;
+                     z-index: 2000;
+                 `;
+
+                 let sleepingCount = 0;
+                 let drowsyCount = 0;
+                 let normalCount = 0;
+
+                 this.faceStates.forEach((state, index) => {
+                     if (state.alertLevel === 'sleeping') sleepingCount++;
+                     else if (state.alertLevel === 'drowsy') drowsyCount++;
+                     else normalCount++;
+                 });
+
+                 const totalFaces = this.faceStates.size;
+                 const alertLevel = sleepingCount > 0 ? 'sleeping' : drowsyCount > 0 ? 'drowsy' : 'normal';
+
+                 overallBox.innerHTML = `
+                     <div style="font-weight: bold; color: #ffd700; margin-bottom: 8px; font-size: 14px;">
+                         📊 Tổng Quan (${totalFaces} người)
+                     </div>
+                     <div style="margin-bottom: 5px;">
+                         <span style="color: #00ff00;">✅ Tỉnh táo:</span> ${normalCount} người
+                     </div>
+                     <div style="margin-bottom: 5px;">
+                         <span style="color: #ffaa00;">⚠️ Buồn ngủ:</span> ${drowsyCount} người
+                     </div>
+                     <div style="margin-bottom: 5px;">
+                         <span style="color: #ff0000;">🚨 Ngủ gật:</span> ${sleepingCount} người
+                     </div>
+                     <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #333;">
+                         <span style="color: #ffd700;">Trạng thái chung:</span> 
+                         <span style="color: ${alertLevel === 'sleeping' ? '#ff0000' : alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00'}; font-weight: bold;">
+                             ${alertLevel === 'sleeping' ? 'CẢNH BÁO' : alertLevel === 'drowsy' ? 'CHÚ Ý' : 'BÌNH THƯỜNG'}
+                         </span>
+                     </div>
+                 `;
+
+                 this.detectionOverlay.appendChild(overallBox);
+             }
+
+             clearOverallStatus() {
+                 const existingBox = this.detectionOverlay.querySelector('.overall-status-box');
+                 if (existingBox) {
+                     existingBox.remove();
+                 }
+             }
 
             updateFPS() {
                 const now = Date.now();
