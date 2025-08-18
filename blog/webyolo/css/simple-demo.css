@@ -1,6 +1,8 @@
 /* Simple Demo Styles - Additions to existing style.css */
 
+
 /* Demo Section Simplification */
+
 .demo-section {
     padding: 60px 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -24,7 +26,7 @@
     height: auto;
     border: 3px solid #fff;
     border-radius: 10px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 #canvas {
@@ -38,7 +40,7 @@
 }
 
 .status-indicator {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     padding: 15px;
     border-radius: 10px;
@@ -52,7 +54,7 @@
 }
 
 .info-section {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     padding: 20px;
     border-radius: 15px;
@@ -68,7 +70,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     padding: 10px 15px;
     border-radius: 8px;
 }
@@ -78,7 +80,7 @@
 }
 
 .stat-value {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     padding: 5px 10px;
     border-radius: 5px;
     font-weight: bold;
@@ -92,7 +94,7 @@
 .history-list {
     max-height: 150px;
     overflow-y: auto;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
     padding: 10px;
     border-radius: 8px;
     font-size: 12px;
@@ -100,7 +102,7 @@
 
 .history-item {
     padding: 5px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .demo-controls {
@@ -127,7 +129,7 @@
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .btn-warning {
@@ -157,7 +159,7 @@
 }
 
 .demo-instructions {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     padding: 25px;
     border-radius: 15px;
@@ -177,7 +179,7 @@
 }
 
 .step {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     padding: 15px;
     border-radius: 10px;
     text-align: center;
@@ -200,7 +202,9 @@
     margin: 0;
 }
 
+
 /* Detection Box Styles */
+
 .detection-box {
     position: absolute;
     border: 3px solid;
@@ -222,12 +226,20 @@
 }
 
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
+
 /* Notification Styles */
+
 .demo-notification {
     position: fixed;
     top: 20px;
@@ -237,7 +249,7 @@
     font-weight: bold;
     z-index: 9999;
     max-width: 300px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     animation: slideIn 0.3s ease-out;
 }
 
@@ -276,28 +288,26 @@
     }
 }
 
+
 /* Mobile Responsive */
+
 @media (max-width: 768px) {
     .demo-container {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-    
     .demo-controls {
         flex-direction: column;
         align-items: center;
     }
-    
     .btn {
         width: 100%;
         max-width: 250px;
         justify-content: center;
     }
-    
     .instruction-steps {
         grid-template-columns: 1fr;
     }
-    
     #webcam {
         max-width: 100%;
     }
@@ -307,11 +317,9 @@
     .demo-section {
         padding: 40px 0;
     }
-    
     .container {
         padding: 0 15px;
     }
-    
     .demo-instructions {
         padding: 20px;
     }
