@@ -167,10 +167,11 @@
          .face-box {
              position: absolute;
              border: 4px solid #00ff00;
-             border-radius: 8px;
-             background: rgba(0, 255, 0, 0.1);
+             border-radius: 12px;
+             background: rgba(0, 255, 0, 0.05);
              transition: all 0.3s ease;
-             box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+             box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+             aspect-ratio: 1; /* Đảm bảo hình vuông */
          }
          
          .face-box.drowsy {
@@ -377,12 +378,12 @@
                         }
                     });
 
-                    this.faceMesh.setOptions({
-                        maxNumFaces: 10, // Tăng lên 10 người
-                        refineLandmarks: true,
-                        minDetectionConfidence: 0.2, // Giảm ngưỡng để phát hiện dễ hơn
-                        minTrackingConfidence: 0.2
-                    });
+                                         this.faceMesh.setOptions({
+                         maxNumFaces: 10, // Tăng lên 10 người
+                         refineLandmarks: true,
+                         minDetectionConfidence: 0.1, // Giảm ngưỡng để phát hiện người gần camera
+                         minTrackingConfidence: 0.1
+                     });
 
                     this.faceMesh.onResults((results) => {
                         this.onFaceMeshResults(results);
@@ -409,27 +410,28 @@
                 this.resetBtn.addEventListener('click', () => this.resetDetection());
             }
 
-            async startDetection() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { 
-                            facingMode: 'user',
-                            width: { ideal: 1280 }, // Tăng độ phân giải
-                            height: { ideal: 720 }
-                        },
-                        audio: false
-                    });
+                         async startDetection() {
+                 try {
+                     const stream = await navigator.mediaDevices.getUserMedia({
+                         video: { 
+                             facingMode: 'user',
+                             width: { ideal: 1920, min: 1280 }, // Tăng độ phân giải tối đa
+                             height: { ideal: 1080, min: 720 },
+                             frameRate: { ideal: 30, min: 15 } // Tăng frame rate
+                         },
+                         audio: false
+                     });
 
-                    this.webcam.srcObject = stream;
-                    this.isRunning = true;
-                    this.updateStatus('Đang phát hiện...', true);
-                    this.toggleButtons(true);
-                    this.detectionLoop();
-                } catch (error) {
-                    console.error('Camera access error:', error);
-                    this.updateStatus('Lỗi truy cập camera', false);
-                }
-            }
+                     this.webcam.srcObject = stream;
+                     this.isRunning = true;
+                     this.updateStatus('Đang phát hiện...', true);
+                     this.toggleButtons(true);
+                     this.detectionLoop();
+                 } catch (error) {
+                     console.error('Camera access error:', error);
+                     this.updateStatus('Lỗi truy cập camera', false);
+                 }
+             }
 
             stopDetection() {
                 this.isRunning = false;
@@ -492,24 +494,35 @@
                  // Phân tích tư thế đầu
                  const headPose = this.calculateHeadPose(landmarks);
 
+                 // Tính khoảng cách từ camera (dựa trên kích thước mặt)
+                 const faceSize = this.calculateOptimalFaceSize(landmarks);
+                 const distanceFromCamera = this.estimateDistanceFromCamera(faceSize);
+
                  // Lấy hoặc tạo trạng thái cho khuôn mặt này
                  if (!this.faceStates.has(faceIndex)) {
                      this.faceStates.set(faceIndex, {
                          eyeClosedFrames: 0,
                          headDownFrames: 0,
                          lastUpdate: Date.now(),
-                         consecutiveDetections: 0
+                         consecutiveDetections: 0,
+                         distanceFromCamera: distanceFromCamera
                      });
                  }
                  const state = this.faceStates.get(faceIndex);
+                 state.distanceFromCamera = distanceFromCamera;
 
                  // Đánh giá trạng thái
                  let status = 'Tỉnh táo';
                  let confidence = 95;
                  let alertLevel = 'normal';
 
+                 // Điều chỉnh ngưỡng dựa trên khoảng cách
+                 const distanceMultiplier = distanceFromCamera < 0.3 ? 0.8 : 1.0; // Người gần camera nhạy hơn
+                 const eyeThreshold = 0.2 * distanceMultiplier;
+                 const headThreshold = 10 * distanceMultiplier;
+
                  // Kiểm tra mắt nhắm với ngưỡng thấp hơn
-                 if (avgEyeOpenness < 0.2) { // Giảm ngưỡng để nhạy hơn
+                 if (avgEyeOpenness < eyeThreshold) {
                      state.eyeClosedFrames++;
                      state.consecutiveDetections++;
                  } else {
@@ -518,7 +531,7 @@
                  }
 
                  // Kiểm tra đầu nghiêng/cúi
-                 if (Math.abs(headPose.tilt) > 10 || Math.abs(headPose.pitch) > 10) { // Giảm ngưỡng để nhạy hơn
+                 if (Math.abs(headPose.tilt) > headThreshold || Math.abs(headPose.pitch) > headThreshold) {
                      state.headDownFrames++;
                  } else {
                      state.headDownFrames = Math.max(0, state.headDownFrames - 1);
@@ -589,44 +602,101 @@
                 return { tilt, pitch, roll: 0 };
             }
 
-            distance(point1, point2) {
-                return Math.sqrt(
-                    Math.pow(point1.x - point2.x, 2) + 
-                    Math.pow(point1.y - point2.y, 2)
-                );
-            }
+                         distance(point1, point2) {
+                 return Math.sqrt(
+                     Math.pow(point1.x - point2.x, 2) + 
+                     Math.pow(point1.y - point2.y, 2)
+                 );
+             }
 
-            drawFaceLandmarks(landmarks, faceIndex) {
-                // Vẽ bounding box
-                const xs = landmarks.map(p => p.x);
-                const ys = landmarks.map(p => p.y);
-                const minX = Math.min(...xs);
-                const maxX = Math.max(...xs);
-                const minY = Math.min(...ys);
-                const maxY = Math.max(...ys);
+             calculateFaceCenter(landmarks) {
+                 // Tính tâm mặt dựa trên các điểm quan trọng
+                 const nose = landmarks[1];
+                 const leftEye = landmarks[33];
+                 const rightEye = landmarks[263];
+                 const leftMouth = landmarks[61];
+                 const rightMouth = landmarks[291];
+                 
+                 // Tâm mặt = trung bình của mắt và mũi
+                 const centerX = (leftEye.x + rightEye.x + nose.x) / 3;
+                 const centerY = (leftEye.y + rightEye.y + nose.y) / 3;
+                 
+                 return { x: centerX, y: centerY };
+             }
 
-                const faceBox = document.createElement('div');
-                faceBox.className = 'face-box';
-                faceBox.id = `face-box-${faceIndex}`;
-                
-                // Lấy trạng thái của khuôn mặt này
-                const state = this.faceStates.get(faceIndex);
-                if (state) {
-                    if (state.alertLevel === 'sleeping') {
-                        faceBox.classList.add('sleeping');
-                    } else if (state.alertLevel === 'drowsy') {
-                        faceBox.classList.add('drowsy');
-                    }
-                }
+             calculateOptimalFaceSize(landmarks) {
+                 // Tính kích thước tối ưu dựa trên khoảng cách giữa các điểm quan trọng
+                 const leftEye = landmarks[33];
+                 const rightEye = landmarks[263];
+                 const nose = landmarks[1];
+                 const leftMouth = landmarks[61];
+                 const rightMouth = landmarks[291];
+                 
+                 // Khoảng cách giữa hai mắt
+                 const eyeDistance = this.distance(leftEye, rightEye);
+                 
+                 // Khoảng cách từ mắt đến mũi
+                 const eyeToNoseDistance = (this.distance(leftEye, nose) + this.distance(rightEye, nose)) / 2;
+                 
+                 // Khoảng cách từ mũi đến miệng
+                 const noseToMouthDistance = (this.distance(nose, leftMouth) + this.distance(nose, rightMouth)) / 2;
+                 
+                 // Kích thước tối ưu = khoảng cách mắt * 2.5 (bao gồm cả trán và cằm)
+                 const optimalWidth = eyeDistance * 2.5;
+                 const optimalHeight = (eyeToNoseDistance + noseToMouthDistance) * 3;
+                 
+                 return {
+                     width: optimalWidth,
+                     height: optimalHeight
+                 };
+             }
 
-                faceBox.style.cssText = `
-                    left: ${minX * 100}%;
-                    top: ${minY * 100}%;
-                    width: ${(maxX - minX) * 100}%;
-                    height: ${(maxY - minY) * 100}%;
-                    border-width: 4px;
-                    border-style: solid;
-                `;
+             estimateDistanceFromCamera(faceSize) {
+                 // Ước tính khoảng cách từ camera dựa trên kích thước mặt
+                 // Mặt càng lớn = càng gần camera
+                 const averageSize = (faceSize.width + faceSize.height) / 2;
+                 
+                 // Chuẩn hóa khoảng cách (0 = rất gần, 1 = rất xa)
+                 const normalizedDistance = Math.max(0, Math.min(1, 1 - (averageSize * 2)));
+                 
+                 return normalizedDistance;
+             }
+
+                         drawFaceLandmarks(landmarks, faceIndex) {
+                 // Tính bounding box hình vuông tập trung vào mặt
+                 const faceCenter = this.calculateFaceCenter(landmarks);
+                 const faceSize = this.calculateOptimalFaceSize(landmarks);
+                 
+                 // Tạo hình vuông với kích thước tối ưu
+                 const squareSize = Math.max(faceSize.width, faceSize.height) * 1.2; // Tăng 20% để có margin
+                 const halfSize = squareSize / 2;
+                 
+                 const left = (faceCenter.x - halfSize) * 100;
+                 const top = (faceCenter.y - halfSize) * 100;
+                 const size = squareSize * 100;
+
+                 const faceBox = document.createElement('div');
+                 faceBox.className = 'face-box';
+                 faceBox.id = `face-box-${faceIndex}`;
+                 
+                 // Lấy trạng thái của khuôn mặt này
+                 const state = this.faceStates.get(faceIndex);
+                 if (state) {
+                     if (state.alertLevel === 'sleeping') {
+                         faceBox.classList.add('sleeping');
+                     } else if (state.alertLevel === 'drowsy') {
+                         faceBox.classList.add('drowsy');
+                     }
+                 }
+
+                 faceBox.style.cssText = `
+                     left: ${left}%;
+                     top: ${top}%;
+                     width: ${size}%;
+                     height: ${size}%;
+                     border-width: 4px;
+                     border-style: solid;
+                 `;
 
                 // Vẽ nhãn với thông tin chi tiết
                 const label = document.createElement('div');
@@ -719,25 +789,29 @@
                      top: ${(landmarks[1].y * 100) - 15}%;
                  `;
 
-                 infoBox.innerHTML = `
-                     <div class="person-title">Người ${faceIndex + 1}</div>
-                     <div class="info-row">
-                         <span class="info-label">Mắt:</span>
-                         <span class="info-value">${(state.eyeOpenness * 100).toFixed(1)}%</span>
-                     </div>
-                     <div class="info-row">
-                         <span class="info-label">Đầu:</span>
-                         <span class="info-value">${state.headTilt.toFixed(1)}°</span>
-                     </div>
-                     <div class="info-row">
-                         <span class="info-label">Trạng thái:</span>
-                         <span class="info-value">${state.status}</span>
-                     </div>
-                     <div class="info-row">
-                         <span class="info-label">Tin cậy:</span>
-                         <span class="info-value">${state.confidence}%</span>
-                     </div>
-                 `;
+                                   infoBox.innerHTML = `
+                      <div class="person-title">Người ${faceIndex + 1}</div>
+                      <div class="info-row">
+                          <span class="info-label">Mắt:</span>
+                          <span class="info-value">${(state.eyeOpenness * 100).toFixed(1)}%</span>
+                      </div>
+                      <div class="info-row">
+                          <span class="info-label">Đầu:</span>
+                          <span class="info-value">${state.headTilt.toFixed(1)}°</span>
+                      </div>
+                      <div class="info-row">
+                          <span class="info-label">Khoảng cách:</span>
+                          <span class="info-value">${state.distanceFromCamera < 0.3 ? 'Gần' : state.distanceFromCamera < 0.7 ? 'Trung bình' : 'Xa'}</span>
+                      </div>
+                      <div class="info-row">
+                          <span class="info-label">Trạng thái:</span>
+                          <span class="info-value">${state.status}</span>
+                      </div>
+                      <div class="info-row">
+                          <span class="info-label">Tin cậy:</span>
+                          <span class="info-value">${state.confidence}%</span>
+                      </div>
+                  `;
 
                  this.detectionOverlay.appendChild(infoBox);
              }
