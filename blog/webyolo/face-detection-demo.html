@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection Demo - MediaPipe</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MediaPipe Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+    
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: 'Open Sans', sans-serif;
+            padding: 20px;
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .demo-header h1 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        .demo-header p {
+            color: #cccccc;
+            font-size: 1.1rem;
+        }
+        .video-section {
+            background: #000;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            aspect-ratio: 4/3;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+        }
+        .btn-secondary:hover {
+            background: #FFD700;
+            color: #000;
+        }
+        .info-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .info-card {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .info-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+        .info-label {
+            color: #cccccc;
+            font-size: 0.9rem;
+        }
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff6b35;
+            animation: pulse 2s infinite;
+        }
+        .status-dot.active {
+            background: #4CAF50;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .landmark-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00ff00;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .face-box {
+            position: absolute;
+            border: 3px solid #00ff00;
+            border-radius: 5px;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .face-box.drowsy {
+            border-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.1);
+        }
+        .face-box.sleeping {
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        .face-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>👁️ Face Detection Demo - MediaPipe</h1>
+            <p>Hệ thống nhận diện khuôn mặt và phát hiện ngủ gật thực sự</p>
+        </div>
+
+        <div class="video-section">
+            <div class="video-container">
+                <video id="webcam" autoplay muted></video>
+                <div class="detection-overlay" id="detectionOverlay"></div>
+                <div class="status-indicator" id="statusIndicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Đang khởi tạo...</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn">
+                    <i class="fas fa-play"></i> Bắt Đầu Detection
+                </button>
+                <button class="btn btn-secondary" id="stopBtn" style="display: none;">
+                    <i class="fas fa-stop"></i> Dừng Detection
+                </button>
+                <button class="btn btn-secondary" id="resetBtn">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h3 style="color: #FFD700; margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-chart-line"></i> Thông Tin Phân Tích
+            </h3>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-value" id="faceCount">0</div>
+                    <div class="info-label">Khuôn mặt phát hiện</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value" id="eyeOpenness">0%</div>
+                    <div class="info-label">Độ mở mắt</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value" id="headTilt">0°</div>
+                    <div class="info-label">Góc nghiêng đầu</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value" id="drowsinessLevel">Tỉnh táo</div>
+                    <div class="info-label">Trạng thái</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value" id="confidence">0%</div>
+                    <div class="info-label">Độ tin cậy</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-value" id="fps">0</div>
+                    <div class="info-label">FPS</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FaceDetectionDemo {
+            constructor() {
+                this.initializeElements();
+                this.initializeFaceMesh();
+                this.initializeState();
+                this.initializeEvents();
+            }
+
+            initializeElements() {
+                this.webcam = document.getElementById('webcam');
+                this.detectionOverlay = document.getElementById('detectionOverlay');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.statusDot = document.getElementById('statusDot');
+                this.statusText = document.getElementById('statusText');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                
+                // Info elements
+                this.faceCount = document.getElementById('faceCount');
+                this.eyeOpenness = document.getElementById('eyeOpenness');
+                this.headTilt = document.getElementById('headTilt');
+                this.drowsinessLevel = document.getElementById('drowsinessLevel');
+                this.confidence = document.getElementById('confidence');
+                this.fps = document.getElementById('fps');
+            }
+
+            async initializeFaceMesh() {
+                try {
+                    this.faceMesh = new FaceMesh({
+                        locateFile: (file) => {
+                            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                        }
+                    });
+
+                    this.faceMesh.setOptions({
+                        maxNumFaces: 3,
+                        refineLandmarks: true,
+                        minDetectionConfidence: 0.5,
+                        minTrackingConfidence: 0.5
+                    });
+
+                    this.faceMesh.onResults((results) => {
+                        this.onFaceMeshResults(results);
+                    });
+
+                    this.updateStatus('MediaPipe đã sẵn sàng', true);
+                } catch (error) {
+                    console.error('MediaPipe initialization error:', error);
+                    this.updateStatus('Lỗi khởi tạo MediaPipe', false);
+                }
+            }
+
+            initializeState() {
+                this.isRunning = false;
+                this.frameCount = 0;
+                this.fpsStartTime = Date.now();
+                this.eyeClosedFrames = 0;
+                this.headDownFrames = 0;
+                this.alertThreshold = 15;
+            }
+
+            initializeEvents() {
+                this.startBtn.addEventListener('click', () => this.startDetection());
+                this.stopBtn.addEventListener('click', () => this.stopDetection());
+                this.resetBtn.addEventListener('click', () => this.resetDetection());
+            }
+
+            async startDetection() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+                            facingMode: 'user',
+                            width: { ideal: 800 },
+                            height: { ideal: 600 }
+                        },
+                        audio: false
+                    });
+
+                    this.webcam.srcObject = stream;
+                    this.isRunning = true;
+                    this.updateStatus('Đang phát hiện...', true);
+                    this.toggleButtons(true);
+                    this.detectionLoop();
+                } catch (error) {
+                    console.error('Camera access error:', error);
+                    this.updateStatus('Lỗi truy cập camera', false);
+                }
+            }
+
+            stopDetection() {
+                this.isRunning = false;
+                if (this.webcam.srcObject) {
+                    this.webcam.srcObject.getTracks().forEach(track => track.stop());
+                }
+                this.updateStatus('Đã dừng', false);
+                this.toggleButtons(false);
+            }
+
+            resetDetection() {
+                this.eyeClosedFrames = 0;
+                this.headDownFrames = 0;
+                this.detectionOverlay.innerHTML = '';
+                this.updateInfo(0, 0, 0, 'Tỉnh táo', 0, 0);
+            }
+
+            detectionLoop() {
+                if (!this.isRunning) return;
+                
+                this.frameCount++;
+                this.updateFPS();
+                
+                if (this.webcam && this.webcam.videoWidth > 0) {
+                    this.faceMesh.send({image: this.webcam});
+                }
+                
+                requestAnimationFrame(() => this.detectionLoop());
+            }
+
+            onFaceMeshResults(results) {
+                this.detectionOverlay.innerHTML = '';
+                
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    this.faceCount.textContent = results.multiFaceLandmarks.length;
+                    
+                    // Xử lý khuôn mặt chính
+                    const primaryFace = results.multiFaceLandmarks[0];
+                    this.analyzeFace(primaryFace);
+                    
+                    // Vẽ landmarks cho tất cả khuôn mặt
+                    results.multiFaceLandmarks.forEach((landmarks, index) => {
+                        this.drawFaceLandmarks(landmarks, index);
+                    });
+                } else {
+                    this.faceCount.textContent = '0';
+                    this.updateInfo(0, 0, 0, 'Không phát hiện mặt', 0, 0);
+                }
+            }
+
+            analyzeFace(landmarks) {
+                // Phân tích mắt
+                const leftEyeOpenness = this.calculateEyeOpenness(landmarks, 'left');
+                const rightEyeOpenness = this.calculateEyeOpenness(landmarks, 'right');
+                const avgEyeOpenness = (leftEyeOpenness + rightEyeOpenness) / 2;
+
+                // Phân tích tư thế đầu
+                const headPose = this.calculateHeadPose(landmarks);
+
+                // Đánh giá trạng thái
+                let status = 'Tỉnh táo';
+                let confidence = 95;
+                let alertLevel = 'normal';
+
+                // Kiểm tra mắt nhắm
+                if (avgEyeOpenness < 0.3) {
+                    this.eyeClosedFrames++;
+                } else {
+                    this.eyeClosedFrames = Math.max(0, this.eyeClosedFrames - 1);
+                }
+
+                // Kiểm tra đầu nghiêng/cúi
+                if (Math.abs(headPose.tilt) > 15 || Math.abs(headPose.pitch) > 15) {
+                    this.headDownFrames++;
+                } else {
+                    this.headDownFrames = Math.max(0, this.headDownFrames - 1);
+                }
+
+                // Đánh giá trạng thái
+                if (this.eyeClosedFrames > this.alertThreshold || this.headDownFrames > this.alertThreshold) {
+                    status = 'Ngủ gật';
+                    confidence = Math.min(95, 60 + Math.max(this.eyeClosedFrames, this.headDownFrames) * 2);
+                    alertLevel = 'sleeping';
+                } else if (this.eyeClosedFrames > 5 || this.headDownFrames > 5) {
+                    status = 'Buồn ngủ';
+                    confidence = Math.min(85, 50 + Math.max(this.eyeClosedFrames, this.headDownFrames) * 3);
+                    alertLevel = 'drowsy';
+                }
+
+                this.updateInfo(
+                    avgEyeOpenness * 100,
+                    headPose.tilt,
+                    confidence,
+                    status,
+                    this.eyeClosedFrames,
+                    this.headDownFrames
+                );
+            }
+
+            calculateEyeOpenness(landmarks, eye) {
+                const eyeIndices = eye === 'left' ? 
+                    [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398] :
+                    [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+
+                const ear = this.calculateEAR(landmarks, eyeIndices);
+                return ear;
+            }
+
+            calculateEAR(landmarks, eyeIndices) {
+                const A = this.distance(landmarks[eyeIndices[1]], landmarks[eyeIndices[5]]);
+                const B = this.distance(landmarks[eyeIndices[2]], landmarks[eyeIndices[4]]);
+                const C = this.distance(landmarks[eyeIndices[0]], landmarks[eyeIndices[3]]);
+
+                return (A + B) / (2.0 * C);
+            }
+
+            calculateHeadPose(landmarks) {
+                const nose = landmarks[1];
+                const leftEye = landmarks[33];
+                const rightEye = landmarks[263];
+
+                const tilt = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x) * 180 / Math.PI;
+                const pitch = (nose.y - (leftEye.y + rightEye.y) / 2) * 100;
+
+                return { tilt, pitch, roll: 0 };
+            }
+
+            distance(point1, point2) {
+                return Math.sqrt(
+                    Math.pow(point1.x - point2.x, 2) + 
+                    Math.pow(point1.y - point2.y, 2)
+                );
+            }
+
+            drawFaceLandmarks(landmarks, faceIndex) {
+                // Vẽ bounding box
+                const xs = landmarks.map(p => p.x);
+                const ys = landmarks.map(p => p.y);
+                const minX = Math.min(...xs);
+                const maxX = Math.max(...xs);
+                const minY = Math.min(...ys);
+                const maxY = Math.max(...ys);
+
+                const faceBox = document.createElement('div');
+                faceBox.className = 'face-box';
+                faceBox.style.cssText = `
+                    left: ${minX * 100}%;
+                    top: ${minY * 100}%;
+                    width: ${(maxX - minX) * 100}%;
+                    height: ${(maxY - minY) * 100}%;
+                `;
+
+                const label = document.createElement('div');
+                label.className = 'face-label';
+                label.textContent = `Face ${faceIndex + 1}`;
+                faceBox.appendChild(label);
+
+                this.detectionOverlay.appendChild(faceBox);
+
+                // Vẽ landmarks quan trọng
+                const importantLandmarks = [1, 33, 133, 362, 263, 61, 291];
+                importantLandmarks.forEach(index => {
+                    const point = landmarks[index];
+                    const dot = document.createElement('div');
+                    dot.className = 'landmark-dot';
+                    dot.style.cssText = `
+                        left: ${point.x * 100}%;
+                        top: ${point.y * 100}%;
+                    `;
+                    this.detectionOverlay.appendChild(dot);
+                });
+            }
+
+            updateInfo(eyeOpenness, headTilt, confidence, status, eyeClosedFrames, headDownFrames) {
+                this.eyeOpenness.textContent = `${eyeOpenness.toFixed(1)}%`;
+                this.headTilt.textContent = `${headTilt.toFixed(1)}°`;
+                this.confidence.textContent = `${confidence}%`;
+                this.drowsinessLevel.textContent = status;
+            }
+
+            updateFPS() {
+                const now = Date.now();
+                if (now - this.fpsStartTime >= 1000) {
+                    const currentFPS = Math.round(this.frameCount * 1000 / (now - this.fpsStartTime));
+                    this.fps.textContent = currentFPS;
+                    this.frameCount = 0;
+                    this.fpsStartTime = now;
+                }
+            }
+
+            updateStatus(text, isActive) {
+                this.statusText.textContent = text;
+                this.statusDot.className = `status-dot ${isActive ? 'active' : ''}`;
+            }
+
+            toggleButtons(isRunning) {
+                this.startBtn.style.display = isRunning ? 'none' : 'block';
+                this.stopBtn.style.display = isRunning ? 'block' : 'none';
+            }
+        }
+
+        // Initialize demo when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new FaceDetectionDemo();
+        });
+    </script>
+</body>
+</html>
