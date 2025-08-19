@@ -82,10 +82,10 @@ class EnhancedDrowsinessDetector {
         this.frameCount = 0;
         this.fps = 0;
         
-        // Detection state - ổn định như trước
+        // Detection state - cải thiện để phát hiện tốt hơn
         this.eyeClosedFrames = 0;
         this.headDownFrames = 0;
-        this.alertThreshold = 15;
+        this.alertThreshold = 12; // Giảm ngưỡng để phát hiện sớm hơn
         
         // Settings
         this.settings = {
@@ -293,7 +293,7 @@ class EnhancedDrowsinessDetector {
     }
 
     simulateDetection() {
-        // Mô phỏng phát hiện ngủ gật - ổn định như trước
+        // Mô phỏng phát hiện ngủ gật - cải thiện thuật toán
         const now = Date.now();
         const timeSinceLastFrame = now - this.lastFrameTime;
         
@@ -301,38 +301,50 @@ class EnhancedDrowsinessDetector {
             this.lastFrameTime = now;
             this.frameCount++;
             
-            // Mô phỏng trạng thái ngẫu nhiên
-            const random = Math.random();
+            // Mô phỏng trạng thái thực tế hơn
             let alertLevel = 'normal';
             let confidence = 85 + Math.random() * 15;
             let status = 'Tỉnh táo';
             
-            // Mô phỏng ngủ gật
-            if (random < 0.1) { // 10% chance
+            // Mô phỏng ngủ gật với xác suất cao hơn
+            const random = Math.random();
+            const timeBasedChance = (this.frameCount % 300) / 300; // Tăng dần theo thời gian
+            
+            // Mô phỏng ngủ gật thực tế hơn
+            if (random < 0.3 || timeBasedChance > 0.8) { // 30% chance hoặc sau 30 giây
                 this.eyeClosedFrames++;
                 this.headDownFrames++;
             } else {
-                this.eyeClosedFrames = Math.max(0, this.eyeClosedFrames - 1);
-                this.headDownFrames = Math.max(0, this.headDownFrames - 1);
+                this.eyeClosedFrames = Math.max(0, this.eyeClosedFrames - 0.5);
+                this.headDownFrames = Math.max(0, this.headDownFrames - 0.5);
             }
             
-            // Đánh giá trạng thái
+            // Đánh giá trạng thái cải thiện
             if (this.eyeClosedFrames > this.alertThreshold || this.headDownFrames > this.alertThreshold) {
                 alertLevel = 'sleeping';
                 status = 'Ngủ gật';
                 confidence = 90 + Math.random() * 10;
-            } else if (this.eyeClosedFrames > 5 || this.headDownFrames > 5) {
+            } else if (this.eyeClosedFrames > 8 || this.headDownFrames > 8) {
                 alertLevel = 'drowsy';
                 status = 'Buồn ngủ';
-                confidence = 70 + Math.random() * 20;
+                confidence = 75 + Math.random() * 15;
+            } else if (this.eyeClosedFrames > 3 || this.headDownFrames > 3) {
+                alertLevel = 'normal';
+                status = 'Hơi mệt';
+                confidence = 60 + Math.random() * 20;
             }
             
-            // Mô phỏng khuôn mặt
+            // Mô phỏng khuôn mặt với bounding box hình vuông
+            const videoWidth = this.webcam.videoWidth || 640;
+            const videoHeight = this.webcam.videoHeight || 480;
+            
+            // Tạo bounding box hình vuông focus vào mặt
+            const faceSize = 120 + Math.random() * 40; // Kích thước cố định
             const face = {
-                x: 100 + Math.random() * 200,
-                y: 50 + Math.random() * 100,
-                width: 150 + Math.random() * 50,
-                height: 200 + Math.random() * 50
+                x: (videoWidth - faceSize) / 2 + (Math.random() - 0.5) * 100,
+                y: (videoHeight - faceSize) / 2 + (Math.random() - 0.5) * 60,
+                width: faceSize,
+                height: faceSize // Đảm bảo hình vuông
             };
             
             // Cập nhật UI
@@ -361,33 +373,37 @@ class EnhancedDrowsinessDetector {
         
         this.detectionOverlay.innerHTML = '';
         
-        // Vẽ khung khuôn mặt
+        // Vẽ khung khuôn mặt hình vuông với focus vào mặt
         const faceBox = document.createElement('div');
         faceBox.className = `detection-box ${alertLevel}`;
         faceBox.style.cssText = `
             position: absolute;
-            border: 3px solid ${alertLevel === 'sleeping' ? '#ff0000' : alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00'};
-            border-radius: 5px;
-            background: rgba(255,255,255,0.1);
+            border: 4px solid ${alertLevel === 'sleeping' ? '#ff0000' : alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00'};
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
             left: ${face.x}px;
             top: ${face.y}px;
             width: ${face.width}px;
             height: ${face.height}px;
+            box-shadow: 0 0 15px ${alertLevel === 'sleeping' ? 'rgba(255,0,0,0.6)' : alertLevel === 'drowsy' ? 'rgba(255,170,0,0.6)' : 'rgba(0,255,0,0.6)'};
+            transition: all 0.3s ease;
         `;
         
-        // Vẽ nhãn
+        // Vẽ nhãn trạng thái
         const label = document.createElement('div');
-        label.textContent = `${alertLevel.toUpperCase()} (${confidence}%)`;
+        label.textContent = `${alertLevel === 'sleeping' ? 'NGỦ GẬT' : alertLevel === 'drowsy' ? 'BUỒN NGỦ' : 'TỈNH TÁO'} (${confidence}%)`;
         label.style.cssText = `
             position: absolute;
-            top: -25px;
+            top: -30px;
             left: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             color: white;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 11px;
             font-weight: bold;
+            white-space: nowrap;
+            border: 1px solid ${alertLevel === 'sleeping' ? '#ff0000' : alertLevel === 'drowsy' ? '#ffaa00' : '#00ff00'};
         `;
         
         faceBox.appendChild(label);
@@ -404,20 +420,29 @@ class EnhancedDrowsinessDetector {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             color: white;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 8px;
             font-size: 11px;
-            max-width: 200px;
+            max-width: 220px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         `;
         
+        const statusText = alertLevel === 'sleeping' ? 'Ngủ gật' : 
+                          alertLevel === 'drowsy' ? 'Buồn ngủ' : 
+                          'Tỉnh táo';
+        
         infoBox.innerHTML = `
-            <div><strong>Khuôn mặt:</strong> ${face.width}x${face.height}</div>
-            <div><strong>Trạng thái:</strong> ${alertLevel}</div>
-            <div><strong>Độ tin cậy:</strong> ${confidence}%</div>
-            <div><strong>Mắt nhắm:</strong> ${this.eyeClosedFrames} frames</div>
-            <div><strong>Đầu nghiêng:</strong> ${this.headDownFrames} frames</div>
+            <div style="margin-bottom: 8px; font-weight: bold; color: ${alertLevel === 'sleeping' ? '#ff4444' : alertLevel === 'drowsy' ? '#ffaa00' : '#44ff44'}">
+                ${statusText.toUpperCase()}
+            </div>
+            <div style="margin-bottom: 4px;"><strong>Khuôn mặt:</strong> ${Math.round(face.width)}x${Math.round(face.height)}px</div>
+            <div style="margin-bottom: 4px;"><strong>Độ tin cậy:</strong> ${confidence}%</div>
+            <div style="margin-bottom: 4px;"><strong>Mắt nhắm:</strong> ${Math.round(this.eyeClosedFrames)} frames</div>
+            <div style="margin-bottom: 4px;"><strong>Đầu nghiêng:</strong> ${Math.round(this.headDownFrames)} frames</div>
+            <div style="margin-bottom: 4px;"><strong>Ngưỡng:</strong> ${this.alertThreshold} frames</div>
         `;
         
         this.detectionOverlay.appendChild(infoBox);
