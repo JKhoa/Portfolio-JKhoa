@@ -345,58 +345,58 @@ class EnhancedDrowsinessDetector {
                     confidence = 60 + Math.random() * 20;
                 }
                 
-                // Mô phỏng khuôn mặt với bounding box hình vuông focus vào mặt thực tế
+                // Mô phỏng khuôn mặt với bounding box hình vuông focus TRỰC TIẾP vào mặt người
                 const videoWidth = this.webcam.videoWidth || 640;
                 const videoHeight = this.webcam.videoHeight || 480;
                 
-                // Tính toán vị trí mặt người thực tế (giả lập) - FOCUS VÀO MẶT NGƯỜI
+                // Tính toán vị trí mặt người thực tế - FOCUS TRỰC TIẾP VÀO MẶT
                 let faceX, faceY, faceSize;
                 
                 if (numPeople === 1) {
-                    // 1 người: focus vào giữa màn hình (nơi có mặt người)
-                    faceSize = 150 + Math.random() * 30; // 150-180px
+                    // 1 người: focus TRỰC TIẾP vào mặt người ở giữa
+                    faceSize = 120 + Math.random() * 20; // 120-140px (vừa đủ cho mặt)
                     faceX = (videoWidth - faceSize) / 2;
-                    faceY = (videoHeight - faceSize) / 2 - 20; // Cao hơn một chút để focus vào mặt
+                    faceY = (videoHeight - faceSize) / 2 - 40; // Cao hơn nhiều để focus vào mặt
                 } else if (numPeople === 2) {
-                    // 2 người: focus vào 2 vị trí có mặt người
-                    faceSize = 130 + Math.random() * 25; // 130-155px
+                    // 2 người: focus TRỰC TIẾP vào 2 mặt người
+                    faceSize = 100 + Math.random() * 20; // 100-120px
                     if (i === 0) {
-                        // Người 1: bên trái, focus vào mặt
-                        faceX = (videoWidth * 0.3) - (faceSize / 2);
-                        faceY = (videoHeight - faceSize) / 2 - 15;
+                        // Người 1: bên trái, focus TRỰC TIẾP vào mặt
+                        faceX = (videoWidth * 0.35) - (faceSize / 2);
+                        faceY = (videoHeight - faceSize) / 2 - 35;
                     } else {
-                        // Người 2: bên phải, focus vào mặt
-                        faceX = (videoWidth * 0.7) - (faceSize / 2);
-                        faceY = (videoHeight - faceSize) / 2 - 15;
+                        // Người 2: bên phải, focus TRỰC TIẾP vào mặt
+                        faceX = (videoWidth * 0.65) - (faceSize / 2);
+                        faceY = (videoHeight - faceSize) / 2 - 35;
                     }
                 } else {
-                    // 3 người: focus vào 3 vị trí có mặt người
-                    faceSize = 110 + Math.random() * 20; // 110-130px
+                    // 3 người: focus TRỰC TIẾP vào 3 mặt người
+                    faceSize = 90 + Math.random() * 15; // 90-105px
                     if (i === 0) {
                         faceX = (videoWidth * 0.25) - (faceSize / 2);
-                        faceY = (videoHeight - faceSize) / 2 - 10;
+                        faceY = (videoHeight - faceSize) / 2 - 30;
                     } else if (i === 1) {
                         faceX = (videoWidth * 0.5) - (faceSize / 2);
-                        faceY = (videoHeight - faceSize) / 2 - 10;
+                        faceY = (videoHeight - faceSize) / 2 - 30;
                     } else {
                         faceX = (videoWidth * 0.75) - (faceSize / 2);
-                        faceY = (videoHeight - faceSize) / 2 - 10;
+                        faceY = (videoHeight - faceSize) / 2 - 30;
                     }
                 }
                 
-                // Thêm offset nhỏ để mô phỏng chuyển động tự nhiên (giảm thiểu)
-                faceX += (Math.random() - 0.5) * 10; // Giảm từ 20 xuống 10
-                faceY += (Math.random() - 0.5) * 8;  // Giảm từ 15 xuống 8
+                // Thêm offset rất nhỏ để mô phỏng chuyển động tự nhiên
+                faceX += (Math.random() - 0.5) * 5; // Rất nhỏ: 5px
+                faceY += (Math.random() - 0.5) * 3;  // Rất nhỏ: 3px
                 
-                // Đảm bảo bounding box không ra ngoài màn hình và focus vào mặt
-                faceX = Math.max(20, Math.min(videoWidth - faceSize - 20, faceX));
-                faceY = Math.max(20, Math.min(videoHeight - faceSize - 20, faceY));
+                // Đảm bảo bounding box không ra ngoài màn hình và focus TRỰC TIẾP vào mặt
+                faceX = Math.max(30, Math.min(videoWidth - faceSize - 30, faceX));
+                faceY = Math.max(30, Math.min(videoHeight - faceSize - 30, faceY));
                 
-                // Đảm bảo bounding box luôn hiển thị trong vùng có người (không ở góc)
-                if (faceX < 50) faceX = 50;
-                if (faceY < 50) faceY = 50;
-                if (faceX > videoWidth - faceSize - 50) faceX = videoWidth - faceSize - 50;
-                if (faceY > videoHeight - faceSize - 50) faceY = videoHeight - faceSize - 50;
+                // Đảm bảo bounding box luôn hiển thị TRỰC TIẾP trên mặt người
+                if (faceX < 80) faceX = 80; // Không quá sát mép trái
+                if (faceY < 60) faceY = 60; // Không quá sát mép trên
+                if (faceX > videoWidth - faceSize - 80) faceX = videoWidth - faceSize - 80;
+                if (faceY > videoHeight - faceSize - 60) faceY = videoHeight - faceSize - 60;
                 
                 const face = {
                     x: faceX,
@@ -466,7 +466,7 @@ class EnhancedDrowsinessDetector {
         faces.forEach((face, index) => {
             const color = colors[index % colors.length];
             
-            // Vẽ khung khuôn mặt hình vuông với focus vào mặt
+            // Vẽ khung khuôn mặt hình vuông focus TRỰC TIẾP vào mặt người
             const faceBox = document.createElement('div');
             faceBox.className = `detection-box ${face.alertLevel}`;
             
@@ -474,50 +474,52 @@ class EnhancedDrowsinessDetector {
             let borderColor, shadowColor, borderWidth;
             if (face.alertLevel === 'sleeping') {
                 borderColor = '#ff0000';
-                shadowColor = 'rgba(255,0,0,0.8)';
-                borderWidth = '6px';
+                shadowColor = 'rgba(255,0,0,0.9)';
+                borderWidth = '8px';
             } else if (face.alertLevel === 'drowsy') {
                 borderColor = '#ffaa00';
-                shadowColor = 'rgba(255,170,0,0.8)';
-                borderWidth = '5px';
+                shadowColor = 'rgba(255,170,0,0.9)';
+                borderWidth = '6px';
             } else {
                 borderColor = color;
-                shadowColor = color + '80';
-                borderWidth = '4px';
+                shadowColor = color + '90';
+                borderWidth = '5px';
             }
             
             faceBox.style.cssText = `
                 position: absolute;
                 border: ${borderWidth} solid ${borderColor};
-                border-radius: 12px;
-                background: rgba(255,255,255,0.08);
+                border-radius: 15px;
+                background: rgba(255,255,255,0.1);
                 left: ${face.x}px;
                 top: ${face.y}px;
                 width: ${face.width}px;
                 height: ${face.height}px;
-                box-shadow: 0 0 20px ${shadowColor}, inset 0 0 10px rgba(255,255,255,0.1);
+                box-shadow: 0 0 25px ${shadowColor}, inset 0 0 15px rgba(255,255,255,0.15);
                 transition: all 0.3s ease;
                 z-index: 1000;
                 pointer-events: none;
+                transform: scale(1);
             `;
             
-            // Vẽ nhãn trạng thái với ID người
+            // Vẽ nhãn trạng thái với ID người - FOCUS TRỰC TIẾP
             const label = document.createElement('div');
             label.textContent = `👤 Người ${face.personId}: ${face.alertLevel === 'sleeping' ? '😴 NGỦ GẬT' : face.alertLevel === 'drowsy' ? '😪 BUỒN NGỦ' : '😊 TỈNH TÁO'} (${face.confidence}%)`;
             label.style.cssText = `
                 position: absolute;
-                top: -40px;
-                left: -5px;
-                background: rgba(0,0,0,0.95);
+                top: -45px;
+                left: -8px;
+                background: rgba(0,0,0,0.98);
                 color: white;
-                padding: 6px 12px;
-                border-radius: 8px;
-                font-size: 11px;
+                padding: 8px 15px;
+                border-radius: 10px;
+                font-size: 12px;
                 font-weight: bold;
                 white-space: nowrap;
-                border: 2px solid ${borderColor};
+                border: 3px solid ${borderColor};
                 z-index: 1001;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+                box-shadow: 0 3px 12px rgba(0,0,0,0.7);
+                backdrop-filter: blur(5px);
             `;
             
             // Thêm hiệu ứng pulse cho trạng thái ngủ gật
