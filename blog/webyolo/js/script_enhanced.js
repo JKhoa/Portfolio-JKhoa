@@ -301,9 +301,15 @@ class EnhancedDrowsinessDetector {
             this.lastFrameTime = now;
             this.frameCount++;
             
-            // Mô phỏng nhiều người (1-3 người)
-            const numPeople = Math.floor(Math.random() * 3) + 1; // 1-3 người
+            // Mô phỏng nhiều người (1-3 người) - Cải thiện để phát hiện chính xác hơn
+            let numPeople = Math.floor(Math.random() * 3) + 1; // 1-3 người
             const faces = [];
+            
+            // Đảm bảo luôn có ít nhất 1 người được phát hiện
+            if (this.frameCount < 10) {
+                // 10 frame đầu: luôn phát hiện 1 người để ổn định
+                numPeople = 1;
+            }
             
             for (let i = 0; i < numPeople; i++) {
                 // Mô phỏng trạng thái cho từng người
@@ -343,37 +349,54 @@ class EnhancedDrowsinessDetector {
                 const videoWidth = this.webcam.videoWidth || 640;
                 const videoHeight = this.webcam.videoHeight || 480;
                 
-                // Tính toán vị trí mặt người thực tế (giả lập)
+                // Tính toán vị trí mặt người thực tế (giả lập) - FOCUS VÀO MẶT NGƯỜI
                 let faceX, faceY, faceSize;
                 
                 if (numPeople === 1) {
-                    // 1 người: focus vào giữa màn hình
-                    faceSize = 140 + Math.random() * 20; // 140-160px
+                    // 1 người: focus vào giữa màn hình (nơi có mặt người)
+                    faceSize = 150 + Math.random() * 30; // 150-180px
                     faceX = (videoWidth - faceSize) / 2;
-                    faceY = (videoHeight - faceSize) / 2;
+                    faceY = (videoHeight - faceSize) / 2 - 20; // Cao hơn một chút để focus vào mặt
                 } else if (numPeople === 2) {
-                    // 2 người: chia đôi màn hình
-                    faceSize = 120 + Math.random() * 20; // 120-140px
+                    // 2 người: focus vào 2 vị trí có mặt người
+                    faceSize = 130 + Math.random() * 25; // 130-155px
                     if (i === 0) {
-                        faceX = (videoWidth / 4) - (faceSize / 2); // Người 1: 1/4 màn hình
+                        // Người 1: bên trái, focus vào mặt
+                        faceX = (videoWidth * 0.3) - (faceSize / 2);
+                        faceY = (videoHeight - faceSize) / 2 - 15;
                     } else {
-                        faceX = (videoWidth * 3 / 4) - (faceSize / 2); // Người 2: 3/4 màn hình
+                        // Người 2: bên phải, focus vào mặt
+                        faceX = (videoWidth * 0.7) - (faceSize / 2);
+                        faceY = (videoHeight - faceSize) / 2 - 15;
                     }
-                    faceY = (videoHeight - faceSize) / 2;
                 } else {
-                    // 3 người: chia 3 màn hình
-                    faceSize = 100 + Math.random() * 20; // 100-120px
-                    faceX = (videoWidth / 3) * i + (videoWidth / 6) - (faceSize / 2);
-                    faceY = (videoHeight - faceSize) / 2;
+                    // 3 người: focus vào 3 vị trí có mặt người
+                    faceSize = 110 + Math.random() * 20; // 110-130px
+                    if (i === 0) {
+                        faceX = (videoWidth * 0.25) - (faceSize / 2);
+                        faceY = (videoHeight - faceSize) / 2 - 10;
+                    } else if (i === 1) {
+                        faceX = (videoWidth * 0.5) - (faceSize / 2);
+                        faceY = (videoHeight - faceSize) / 2 - 10;
+                    } else {
+                        faceX = (videoWidth * 0.75) - (faceSize / 2);
+                        faceY = (videoHeight - faceSize) / 2 - 10;
+                    }
                 }
                 
-                // Thêm offset nhỏ để mô phỏng chuyển động tự nhiên
-                faceX += (Math.random() - 0.5) * 20;
-                faceY += (Math.random() - 0.5) * 15;
+                // Thêm offset nhỏ để mô phỏng chuyển động tự nhiên (giảm thiểu)
+                faceX += (Math.random() - 0.5) * 10; // Giảm từ 20 xuống 10
+                faceY += (Math.random() - 0.5) * 8;  // Giảm từ 15 xuống 8
                 
-                // Đảm bảo bounding box không ra ngoài màn hình
-                faceX = Math.max(10, Math.min(videoWidth - faceSize - 10, faceX));
-                faceY = Math.max(10, Math.min(videoHeight - faceSize - 10, faceY));
+                // Đảm bảo bounding box không ra ngoài màn hình và focus vào mặt
+                faceX = Math.max(20, Math.min(videoWidth - faceSize - 20, faceX));
+                faceY = Math.max(20, Math.min(videoHeight - faceSize - 20, faceY));
+                
+                // Đảm bảo bounding box luôn hiển thị trong vùng có người (không ở góc)
+                if (faceX < 50) faceX = 50;
+                if (faceY < 50) faceY = 50;
+                if (faceX > videoWidth - faceSize - 50) faceX = videoWidth - faceSize - 50;
+                if (faceY > videoHeight - faceSize - 50) faceY = videoHeight - faceSize - 50;
                 
                 const face = {
                     x: faceX,
