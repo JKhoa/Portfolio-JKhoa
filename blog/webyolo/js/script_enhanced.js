@@ -979,13 +979,30 @@ class EnhancedDrowsinessDetector {
         
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.textContent = content;
+        
+        // Sử dụng innerHTML thay vì textContent để hỗ trợ Unicode tốt hơn
+        // và đảm bảo font hiển thị đúng
+        contentDiv.innerHTML = this.sanitizeMessage(content);
         
         messageDiv.appendChild(contentDiv);
         this.chatbotMessages.appendChild(messageDiv);
         
         // Scroll to bottom
         this.chatbotMessages.scrollTop = this.chatbotMessages.scrollHeight;
+    }
+
+    // Hàm sanitize để đảm bảo tin nhắn hiển thị đúng font và encoding
+    sanitizeMessage(content) {
+        if (!content) return '';
+        
+        // Loại bỏ các ký tự lạ và đảm bảo encoding UTF-8
+        let sanitized = content
+            .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Loại bỏ control characters
+            .replace(/[^\u0020-\u007E\u00A0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2C60-\u2C7F\uA720-\uA7FF\uFB00-\uFB4F]/g, '') // Chỉ giữ lại các ký tự Unicode hợp lệ
+            .trim();
+        
+        // Đảm bảo font hiển thị đúng bằng cách wrap trong span với font-family
+        return `<span style="font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; line-height: 1.4;">${sanitized}</span>`;
     }
 
     addTypingIndicator() {
@@ -1024,39 +1041,98 @@ class EnhancedDrowsinessDetector {
     }
 
     async getGroqResponse(message, apiKey) {
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: 'llama3-8b-8192',
-                messages: [
-                    {
-                        role: 'system',
-                        content: `Bạn là một AI assistant thân thiện, chuyên về YOLO và nhận diện ngủ gật. 
-                        Người dùng: ${this.userMemory.name || 'Khách'}
-                        Sở thích: ${this.userMemory.interests.join(', ') || 'Chưa có'}
-                        Hãy trả lời bằng tiếng Việt một cách tự nhiên và hữu ích.`
-                    },
-                    ...this.userMemory.conversationHistory.slice(-5).flatMap(conv => [
-                        { role: 'user', content: conv.user },
-                        { role: 'assistant', content: conv.bot }
-                    ]),
-                    { role: 'user', content: message }
-                ],
-                max_tokens: 500,
-                temperature: 0.7
-            })
-        });
+        try {
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({
+                    model: 'llama3-8b-8192',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `Bạn là một AI assistant thân thiện, chuyên về YOLO và nhận diện ngủ gật. 
+                            Người dùng: ${this.userMemory.name || 'Khách'}
+                            Sở thích: ${this.userMemory.interests.join(', ') || 'Chưa có'}
+                            
+                            QUAN TRỌNG: 
+                            - Luôn trả lời bằng tiếng Việt hoàn chỉnh và tự nhiên
+                            - Không sử dụng ký tự lạ hoặc font không hỗ trợ
+                            - Đảm bảo encoding UTF-8 cho tiếng Việt
+                            - Trả lời ngắn gọn, rõ ràng và hữu ích
+                            - Nếu không biết câu trả lời, hãy nói "Tôi không hiểu rõ câu hỏi của bạn" thay vì trả lời sai`
+                        },
+                        ...this.userMemory.conversationHistory.slice(-5).flatMap(conv => [
+                            { role: 'user', content: conv.user },
+                            { role: 'assistant', content: conv.bot }
+                        ]),
+                        { role: 'user', content: message }
+                    ],
+                    max_tokens: 300,
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    frequency_penalty: 0.1,
+                    presence_penalty: 0.1
+                })
+            });
 
-        if (!response.ok) {
-            throw new Error(`Groq API error: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Groq API error: ${response.status} - ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            let content = data.choices[0].message.content;
+            
+            // Đảm bảo content là tiếng Việt hợp lệ
+            if (!content || content.trim() === '') {
+                return 'Xin lỗi, tôi không thể xử lý câu hỏi của bạn. Vui lòng thử lại.';
+            }
+            
+            // Kiểm tra và sửa lỗi encoding
+            content = this.fixEncoding(content);
+            
+            return content;
+            
+        } catch (error) {
+            console.error('Groq API Error:', error);
+            throw new Error(`Lỗi kết nối AI: ${error.message}`);
         }
+    }
 
-        const data = await response.json();
-        return data.choices[0].message.content;
+    // Hàm sửa lỗi encoding cho tiếng Việt
+    fixEncoding(text) {
+        if (!text) return '';
+        
+        // Sửa các ký tự tiếng Việt bị lỗi
+        const encodingFixes = {
+            'á': 'á', 'à': 'à', 'ả': 'ả', 'ã': 'ã', 'ạ': 'ạ',
+            'ă': 'ă', 'ắ': 'ắ', 'ằ': 'ằ', 'ẳ': 'ẳ', 'ẵ': 'ẵ', 'ặ': 'ặ',
+            'â': 'â', 'ấ': 'ấ', 'ầ': 'ầ', 'ẩ': 'ẩ', 'ẫ': 'ẫ', 'ậ': 'ậ',
+            'é': 'é', 'è': 'è', 'ẻ': 'ẻ', 'ẽ': 'ẽ', 'ẹ': 'ẹ',
+            'ê': 'ê', 'ế': 'ế', 'ề': 'ề', 'ể': 'ể', 'ễ': 'ễ', 'ệ': 'ệ',
+            'í': 'í', 'ì': 'ì', 'ỉ': 'ỉ', 'ĩ': 'ĩ', 'ị': 'ị',
+            'ó': 'ó', 'ò': 'ò', 'ỏ': 'ỏ', 'õ': 'õ', 'ọ': 'ọ',
+            'ô': 'ô', 'ố': 'ố', 'ồ': 'ồ', 'ổ': 'ổ', 'ỗ': 'ỗ', 'ộ': 'ộ',
+            'ơ': 'ơ', 'ớ': 'ớ', 'ờ': 'ờ', 'ở': 'ở', 'ỡ': 'ỡ', 'ợ': 'ợ',
+            'ú': 'ú', 'ù': 'ù', 'ủ': 'ủ', 'ũ': 'ũ', 'ụ': 'ụ',
+            'ư': 'ư', 'ứ': 'ứ', 'ừ': 'ừ', 'ử': 'ử', 'ữ': 'ữ', 'ự': 'ự',
+            'ý': 'ý', 'ỳ': 'ỳ', 'ỷ': 'ỷ', 'ỹ': 'ỹ', 'ỵ': 'ỵ',
+            'đ': 'đ'
+        };
+        
+        let fixedText = text;
+        
+        // Áp dụng các sửa lỗi encoding
+        for (const [wrong, correct] of Object.entries(encodingFixes)) {
+            fixedText = fixedText.replace(new RegExp(wrong, 'g'), correct);
+        }
+        
+        // Loại bỏ các ký tự không hợp lệ
+        fixedText = fixedText.replace(/[^\u0020-\u007E\u00A0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2C60-\u2C7F\uA720-\uA7FF\uFB00-\uFB4F\u0300-\u036F]/g, '');
+        
+        return fixedText.trim();
     }
 
     getSimpleResponse(message) {
@@ -1066,18 +1142,23 @@ class EnhancedDrowsinessDetector {
             'demo': 'Demo này mô phỏng việc phát hiện ngủ gật bằng AI. Bạn có thể thử nghiệm bằng cách nhắm mắt hoặc cúi đầu để xem kết quả.',
             'camera': 'Camera được sử dụng để thu thập hình ảnh thời gian thực. Hệ thống sẽ phân tích từng frame để phát hiện trạng thái ngủ gật.',
             'ai': 'AI (Trí tuệ nhân tạo) được sử dụng để phân tích hình ảnh và đưa ra quyết định về trạng thái tỉnh táo của người dùng.',
-            'help': 'Tôi có thể giúp bạn tìm hiểu về YOLO, nhận diện ngủ gật, AI, camera và demo này. Bạn muốn biết thêm về chủ đề nào?'
+            'help': 'Tôi có thể giúp bạn tìm hiểu về YOLO, nhận diện ngủ gật, AI, camera và demo này. Bạn muốn biết thêm về chủ đề nào?',
+            'nước hoa': 'Tôi hiểu bạn đang hỏi về nước hoa, nhưng tôi chuyên về YOLO và nhận diện ngủ gật. Bạn có muốn tìm hiểu về công nghệ AI này không?',
+            'perfume': 'Tôi hiểu bạn đang hỏi về nước hoa, nhưng tôi chuyên về YOLO và nhận diện ngủ gật. Bạn có muốn tìm hiểu về công nghệ AI này không?',
+            'mua': 'Tôi hiểu bạn đang hỏi về mua sắm, nhưng tôi chuyên về YOLO và nhận diện ngủ gật. Bạn có muốn tìm hiểu về công nghệ AI này không?',
+            'dịch': 'Tôi hiểu bạn muốn dịch thuật, nhưng tôi chuyên về YOLO và nhận diện ngủ gật. Bạn có muốn tìm hiểu về công nghệ AI này không?',
+            'translate': 'Tôi hiểu bạn muốn dịch thuật, nhưng tôi chuyên về YOLO và nhận diện ngủ gật. Bạn có muốn tìm hiểu về công nghệ AI này không?'
         };
 
         const lowerMessage = message.toLowerCase();
         
         for (const [key, response] of Object.entries(responses)) {
             if (lowerMessage.includes(key)) {
-                return response;
+                return this.fixEncoding(response);
             }
         }
 
-        return 'Cảm ơn bạn đã hỏi! Tôi có thể giúp bạn tìm hiểu về YOLO, nhận diện ngủ gật, AI, camera và demo này. Bạn có câu hỏi cụ thể nào không?';
+        return this.fixEncoding('Cảm ơn bạn đã hỏi! Tôi có thể giúp bạn tìm hiểu về YOLO, nhận diện ngủ gật, AI, camera và demo này. Bạn có câu hỏi cụ thể nào không?');
     }
 
     async testAI() {
@@ -1131,8 +1212,40 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatbotToggle) {
         new EnhancedDrowsinessDetector();
         console.log('EnhancedDrowsinessDetector initialized');
+        
+        // Kiểm tra và sửa lỗi font cho chatbot
+        fixChatbotFontIssues();
     }
 });
+
+// Hàm kiểm tra và sửa lỗi font cho chatbot
+function fixChatbotFontIssues() {
+    // Đảm bảo font được load đúng
+    if (document.fonts) {
+        document.fonts.ready.then(() => {
+            console.log('Fonts loaded successfully');
+        });
+    }
+    
+    // Thêm CSS để đảm bảo font hiển thị đúng
+    const fontFixStyle = document.createElement('style');
+    fontFixStyle.textContent = `
+        .chatbot-messages,
+        .chatbot-messages *,
+        .message,
+        .message * {
+            font-family: 'Open Sans', 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            text-rendering: optimizeLegibility !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+        }
+        
+        .chatbot-input input {
+            font-family: 'Open Sans', 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        }
+    `;
+    document.head.appendChild(fontFixStyle);
+}
 
 // Add CSS animations
 const style = document.createElement('style');

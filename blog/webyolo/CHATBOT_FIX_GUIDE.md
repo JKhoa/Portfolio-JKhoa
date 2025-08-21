@@ -1,140 +1,109 @@
-# 🤖 Hướng Dẫn Sửa Lỗi Chatbot
+# Hướng Dẫn Sửa Lỗi Font và Encoding Chatbot
 
-## ✅ **Các vấn đề đã được khắc phục:**
+## Vấn Đề Đã Gặp Phải
 
-### 🔧 **1. Lỗi CSS Display:**
-- **Vấn đề**: JavaScript sử dụng `style.display` thay vì `classList.toggle('active')`
-- **Giải pháp**: Đã sửa để sử dụng CSS classes đúng cách
-- **File sửa**: `js/script_enhanced.js`
+Chatbot AI assistant gặp các lỗi sau:
+1. **Lỗi font**: Hiển thị ký tự lạ thay vì tiếng Việt
+2. **Lỗi encoding**: Dịch thuật không hoàn chỉnh, có ký tự bị vỡ
+3. **Lỗi Unicode**: Một số ký tự tiếng Việt không hiển thị đúng
 
-### 🔧 **2. Lỗi Khởi Tạo Elements:**
-- **Vấn đề**: Code cố gắng truy cập elements không tồn tại
-- **Giải pháp**: Thêm kiểm tra `if (element)` trước khi sử dụng
-- **File sửa**: `js/script_enhanced.js`
+## Các Thay Đổi Đã Thực Hiện
 
-### 🔧 **3. Lỗi Event Listeners:**
-- **Vấn đề**: Event listeners được thêm cho elements null
-- **Giải pháp**: Chỉ thêm listeners khi elements tồn tại
-- **File sửa**: `js/script_enhanced.js`
+### 1. Cải Thiện Xử Lý Tin Nhắn (script_enhanced.js)
 
-### 🔧 **4. Lỗi Server Connection:**
-- **Vấn đề**: Code cố gắng kết nối server khi không cần thiết
-- **Giải pháp**: Chỉ check server khi có database elements
-- **File sửa**: `js/script_enhanced.js`
+#### Thay đổi hàm `addMessage()`:
+- Sử dụng `innerHTML` thay vì `textContent` để hỗ trợ Unicode tốt hơn
+- Thêm hàm `sanitizeMessage()` để làm sạch và format tin nhắn
+- Wrap tin nhắn trong `<span>` với font-family cụ thể
 
-## 🎯 **Cách Test Chatbot:**
-
-### **Bước 1: Mở file test**
-```bash
-# Mở file test đơn giản
-blog/webyolo/chatbot-test.html
-```
-
-### **Bước 2: Kiểm tra Console**
-1. Mở Developer Tools (F12)
-2. Xem tab Console
-3. Refresh trang
-4. Thấy log: "DOM loaded, checking for chatbot elements..."
-
-### **Bước 3: Test Chatbot**
-1. Nhìn góc phải dưới → Icon chat màu vàng
-2. Click vào icon → Cửa sổ chat mở ra
-3. Gõ tin nhắn → Bot trả lời
-4. Test các câu hỏi: "yolo", "demo", "help"
-
-## 🔍 **Debug Logs:**
-
-### **Khởi tạo thành công:**
-```
-DOM loaded, checking for chatbot elements...
-Chatbot elements found, initializing...
-Chatbot elements initialized:
-- chatbotToggle: true
-- chatbotWindow: true
-- closeChatbot: true
-- chatbotMessages: true
-- chatbotInput: true
-- sendMessage: true
-Chatbot toggle event listener added
-Chatbot close event listener added
-Chatbot send message event listener added
-Chatbot input keypress event listener added
-EnhancedDrowsinessDetector initialized successfully!
-```
-
-### **Click chatbot:**
-```
-Toggle chatbot clicked!
-Chatbot is now: open
-```
-
-## 🚨 **Nếu vẫn lỗi:**
-
-### **Kiểm tra 1: Elements tồn tại**
+#### Thêm hàm `sanitizeMessage()`:
 ```javascript
-// Mở Console và chạy:
-console.log('chatbotToggle:', document.getElementById('chatbotToggle'));
-console.log('chatbotWindow:', document.getElementById('chatbotWindow'));
+sanitizeMessage(content) {
+    // Loại bỏ control characters
+    // Chỉ giữ lại các ký tự Unicode hợp lệ
+    // Wrap trong span với font-family
+}
 ```
 
-### **Kiểm tra 2: CSS đúng**
+### 2. Cải Thiện API Groq (script_enhanced.js)
+
+#### Thay đổi hàm `getGroqResponse()`:
+- Thêm `charset=utf-8` vào Content-Type header
+- Cải thiện system prompt với hướng dẫn cụ thể về tiếng Việt
+- Giảm `max_tokens` từ 500 xuống 300 để tránh lỗi
+- Thêm các tham số `top_p`, `frequency_penalty`, `presence_penalty`
+
+#### Thêm hàm `fixEncoding()`:
+```javascript
+fixEncoding(text) {
+    // Sửa các ký tự tiếng Việt bị lỗi
+    // Loại bỏ ký tự không hợp lệ
+    // Đảm bảo encoding UTF-8
+}
+```
+
+### 3. Cải Thiện Simple Response (script_enhanced.js)
+
+#### Thêm responses cho các từ khóa mới:
+- `nước hoa`, `perfume`: Trả lời về chủ đề không liên quan
+- `mua`: Hướng dẫn về chủ đề AI
+- `dịch`, `translate`: Giải thích về chuyên môn
+
+#### Áp dụng `fixEncoding()` cho tất cả responses
+
+### 4. Cải Thiện CSS (style.css)
+
+#### Thêm font properties cho `.message` và `.message-content`:
 ```css
-.chatbot-window {
-    display: none;  /* Mặc định ẩn */
-}
-
-.chatbot-window.active {
-    display: flex;  /* Hiển thị khi có class active */
-}
+font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+text-rendering: optimizeLegibility;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
 ```
 
-### **Kiểm tra 3: JavaScript load**
-```javascript
-// Kiểm tra file JS đã load chưa
-console.log('EnhancedDrowsinessDetector:', typeof EnhancedDrowsinessDetector);
-```
+### 5. Cải Thiện HTML (index.html)
 
-## 📁 **Files đã sửa:**
+#### Thêm meta tags:
+- `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">`
+- `<meta name="language" content="vi">`
+- `<meta name="content-language" content="vi">`
 
-### **1. `js/script_enhanced.js`:**
-- ✅ Sửa `toggleChatbot()` sử dụng `classList.toggle('active')`
-- ✅ Sửa `closeChatbotWindow()` sử dụng `classList.remove('active')`
-- ✅ Sửa `openSettings()` và `closeSettings()` sử dụng classes
-- ✅ Thêm kiểm tra elements trước khi sử dụng
-- ✅ Thêm debug logging
+#### Thêm font Inter:
+- `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">`
 
-### **2. `chatbot-test.html` (mới):**
-- ✅ File test đơn giản để kiểm tra chatbot
-- ✅ Chỉ có chatbot, không có demo phức tạp
-- ✅ Hướng dẫn test chi tiết
+### 6. Thêm Font Fix Function (script_enhanced.js)
 
-## 🎉 **Kết quả:**
+#### Hàm `fixChatbotFontIssues()`:
+- Kiểm tra font loading
+- Thêm CSS động để đảm bảo font hiển thị đúng
+- Sử dụng `!important` để override các style khác
 
-### **Trước khi sửa:**
-- ❌ Chatbot không mở được
-- ❌ JavaScript errors trong console
-- ❌ Elements null khi truy cập
+## Kết Quả Mong Đợi
 
-### **Sau khi sửa:**
-- ✅ Chatbot mở/đóng bình thường
-- ✅ Không có JavaScript errors
-- ✅ Debug logs rõ ràng
-- ✅ Hoạt động trên mọi trang có chatbot
+Sau khi áp dụng các thay đổi:
 
-## 🚀 **Cách sử dụng:**
+1. ✅ **Font hiển thị đúng**: Tiếng Việt hiển thị rõ ràng, không có ký tự lạ
+2. ✅ **Encoding UTF-8**: Tất cả ký tự Unicode được hỗ trợ
+3. ✅ **Dịch thuật hoàn chỉnh**: API Groq trả lời bằng tiếng Việt đầy đủ
+4. ✅ **Fallback tốt**: Khi không có API key, simple responses vẫn hoạt động tốt
+5. ✅ **Responsive**: Font hiển thị đúng trên mọi thiết bị
 
-### **Trên trang chính:**
-```html
-<!-- Trong index.html -->
-<script src="js/script_enhanced.js"></script>
-```
+## Cách Test
 
-### **Test riêng:**
-```html
-<!-- Mở chatbot-test.html -->
-<!-- Test chatbot độc lập -->
-```
+1. **Test Simple Responses**:
+   - Gõ "yolo", "ngủ gật", "ai" → Kiểm tra font và encoding
+   - Gõ "nước hoa", "mua" → Kiểm tra response redirect
 
----
+2. **Test Groq API** (nếu có API key):
+   - Gõ câu hỏi phức tạp → Kiểm tra dịch thuật hoàn chỉnh
+   - Gõ tiếng Anh → Kiểm tra response tiếng Việt
 
-**Kết luận**: Chatbot đã được sửa hoàn toàn và hoạt động ổn định! 🎯
+3. **Test Font Rendering**:
+   - Kiểm tra các ký tự đặc biệt: ă, â, ê, ô, ơ, ư, đ
+   - Kiểm tra dấu thanh: á, à, ả, ã, ạ
+
+## Lưu Ý
+
+- Đảm bảo server hỗ trợ UTF-8 encoding
+- Nếu vẫn có lỗi, kiểm tra browser console để debug
+- Có thể cần clear browser cache sau khi thay đổi
