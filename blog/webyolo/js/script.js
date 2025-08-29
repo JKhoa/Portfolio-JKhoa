@@ -996,11 +996,24 @@ class DrowsinessDetector {
         }
     }
 
-    clearDatabase() {
-        this.imageDatabase = [];
-        localStorage.removeItem(this.DATABASE_KEY);
-        this.updateImageGallery();
-        console.log('Database cleared');
+    async clearDatabase() {
+        this.log("Attempting to clear database on server...");
+        try {
+            const response = await fetch('http://localhost:3000/api/detections', {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.log("Successfully cleared database on server.");
+            this.database = [];
+            this.renderDatabase();
+        } catch (error) {
+            console.error("Failed to clear database:", error);
+            this.log(`Error: Could not clear database on server. Details: ${error.message}`);
+        }
     }
 
     exportDatabase() {
@@ -1407,384 +1420,107 @@ class DrowsinessDetector {
     }
 
     // Image capture and database methods
-    captureAndSaveImage(timestamp, status = 'Ngủ gật', confidence = 0) {
-        if (!this.webcam || !this.canvas) {
-            console.error('Camera or canvas not available for capture');
+    async captureAndSaveImage() {
+        if (!this.videoElement || this.videoElement.readyState < 2) {
+            this.log("Video not ready for capture.");
             return;
         }
 
+        const canvas = document.createElement('canvas');
+        canvas.width = this.videoElement.videoWidth;
+        canvas.height = this.videoElement.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL('image/jpeg');
+        const notesInput = document.getElementById('notesInput');
+        const notes = notesInput ? notesInput.value : null;
+
+        this.log("Attempting to save detection to server...");
+
         try {
-            const captureCanvas = document.createElement('canvas');
-            const ctx = captureCanvas.getContext('2d');
+            const response = await fetch('http://localhost:3000/api/detections', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ imageData, notes }),
+            });
 
-            // Set canvas size to match video
-            captureCanvas.width = this.webcam.videoWidth || 640;
-            captureCanvas.height = this.webcam.videoHeight || 480;
-
-            // Draw current video frame
-            ctx.drawImage(this.webcam, 0, 0, captureCanvas.width, captureCanvas.height);
-
-            // Convert to base64 image
-            const imageData = captureCanvas.toDataURL('image/jpeg', 0.8);
-
-            // Create image record
-            const imageRecord = {
-                id: Date.now().toString(),
-                timestamp: timestamp.toISOString(),
-                timeString: timestamp.toLocaleString('vi-VN'),
-                status: status,
-                confidence: confidence,
-                imageData: imageData,
-                size: Math.round(imageData.length * 0.75) // Approximate size in bytes
-            };
-
-            // Save to database
-            this.saveToDatabase(imageRecord);
-
-            // Show notification
-            this.showNotification(`📸 Đã chụp ảnh tự động lúc ${imageRecord.timeString}`, 'info');
-
-            console.log('Image captured and saved:', imageRecord.id);
-
-        } catch (error) {
-            console.error('Error capturing image:', error);
-            this.showNotification('❌ Lỗi khi chụp ảnh tự động', 'error');
-        }
-    }
-
-    loadDatabase() {
-        try {
-            const saved = localStorage.getItem(this.DATABASE_KEY);
-            return saved ? JSON.parse(saved) : [];
-        } catch (error) {
-            console.error('Error loading database:', error);
-            return [];
-        }
-    }
-
-    saveToDatabase(imageRecord) {
-        try {
-            let database = this.loadDatabase();
-            database.push(imageRecord);
-
-            // Keep only last 50 images to prevent storage overflow
-            if (database.length > 50) {
-                database = database.slice(-50);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            localStorage.setItem(this.DATABASE_KEY, JSON.stringify(database));
-            this.imageDatabase = database;
-
-            console.log('Image saved to database. Total images:', database.length);
-
+            this.log("Successfully saved detection to the database via server.");
+            if (notesInput) {
+                notesInput.value = ''; // Clear the notes input after saving
+            }
+            await this.loadDatabase();
         } catch (error) {
-            console.error('Error saving to database:', error);
+            console.error("Failed to save image:", error);
+            this.log(`Error: Could not save detection to server. Details: ${error.message}`);
+        }
+    }
 
-            // If storage is full, try to clear old data
-            if (error.name === 'QuotaExceededError') {
-                this.clearOldImages();
-                // Try saving again
-                try {
-                    let database = this.loadDatabase();
-                    database.push(imageRecord);
-                    localStorage.setItem(this.DATABASE_KEY, JSON.stringify(database));
-                    this.imageDatabase = database;
-                } catch (retryError) {
-                    console.error('Failed to save even after clearing:', retryError);
+    async loadDatabase() {
+        try {
+            const response = await fetch('http://localhost:3000/api/detections', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
                 }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        }
-    }
 
-    clearDatabase() {
-        try {
-            localStorage.removeItem(this.DATABASE_KEY);
-            this.imageDatabase = [];
-            this.showNotification('🗑️ Đã xóa tất cả ảnh đã lưu', 'info');
-            console.log('Database cleared');
+            const data = await response.json();
+            this.database = data.map(item => ({
+                id: item.ID,
+                timestamp: item.Timestamp,
+                image: item.ImageData,
+                notes: item.Notes
+            }));
+            this.log(`Successfully loaded ${this.database.length} records from the database.`);
+            this.renderDatabase();
         } catch (error) {
-            console.error('Error clearing database:', error);
+            console.error('Failed to load database:', error);
+            this.log(`Error: Could not load database from server. Details: ${error.message}`);
         }
     }
 
-    clearOldImages() {
-        try {
-            let database = this.loadDatabase();
-            // Keep only the last 20 images
-            database = database.slice(-20);
-            localStorage.setItem(this.DATABASE_KEY, JSON.stringify(database));
-            this.imageDatabase = database;
-            console.log('Cleared old images, kept last 20');
-        } catch (error) {
-            console.error('Error clearing old images:', error);
-        }
-    }
+    renderDatabase() {
+            if (!this.dbList) return;
 
-    exportDatabase() {
-        try {
-            const database = this.loadDatabase();
-            const dataStr = JSON.stringify(database, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `drowsiness_images_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-
-            this.showNotification(`📁 Đã xuất ${database.length} ảnh`, 'success');
-
-        } catch (error) {
-            console.error('Error exporting database:', error);
-            this.showNotification('❌ Lỗi khi xuất dữ liệu', 'error');
-        }
-    }
-
-    showImageGallery() {
-            const database = this.loadDatabase();
-
-            if (database.length === 0) {
-                this.showNotification('📷 Chưa có ảnh nào được chụp', 'info');
+            if (this.database.length === 0) {
+                this.dbList.innerHTML = '<li>Chưa có dữ liệu.</li>';
                 return;
             }
 
-            // Create gallery modal
-            const modal = document.createElement('div');
-            modal.className = 'image-gallery-modal';
-            modal.innerHTML = `
-            <div class="gallery-content">
-                <div class="gallery-header">
-                    <h3>📷 Thư viện ảnh (${database.length} ảnh)</h3>
-                    <button class="close-gallery">×</button>
-                </div>
-                <div class="gallery-grid">
-                    ${database.map(img => `
-                        <div class="gallery-item">
-                            <img src="${img.imageData}" alt="Drowsiness ${img.status}">
-                            <div class="image-info">
-                                <div class="time">${img.timeString}</div>
-                                <div class="status ${img.status === 'Ngủ gật' ? 'sleeping' : 'drowsy'}">${img.status}</div>
-                                <div class="confidence">${img.confidence}%</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="gallery-actions">
-                    <button class="export-btn">📁 Xuất dữ liệu</button>
-                    <button class="clear-btn">🗑️ Xóa tất cả</button>
-                </div>
-            </div>
-        `;
-        
-        // Add gallery styles
-        if (!document.getElementById('gallery-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'gallery-styles';
-            styles.textContent = `
-                .image-gallery-modal {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.9);
-                    z-index: 10000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 20px;
-                    box-sizing: border-box;
-                }
-                .gallery-content {
-                    background: white;
-                    border-radius: 10px;
-                    max-width: 90vw;
-                    max-height: 90vh;
-                    overflow: hidden;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .gallery-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 20px;
-                    border-bottom: 1px solid #eee;
-                }
-                .close-gallery {
-                    background: none;
-                    border: none;
-                    font-size: 24px;
-                    cursor: pointer;
-                    color: #666;
-                }
-                .gallery-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                    gap: 15px;
-                    padding: 20px;
-                    overflow-y: auto;
-                    max-height: 60vh;
-                }
-                .gallery-item {
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    background: white;
-                }
-                .gallery-item img {
-                    width: 100%;
-                    height: 150px;
-                    object-fit: cover;
-                }
-                .image-info {
-                    padding: 10px;
-                    font-size: 12px;
-                }
-                .image-info .time {
-                    color: #666;
-                    margin-bottom: 5px;
-                }
-                .image-info .status {
-                    font-weight: bold;
-                    margin-bottom: 3px;
-                }
-                .image-info .status.sleeping {
-                    color: #ff4444;
-                }
-                .image-info .status.drowsy {
-                    color: #ff8800;
-                }
-                .image-info .confidence {
-                    color: #888;
-                    font-size: 11px;
-                }
-                .gallery-actions {
-                    display: flex;
-                    gap: 10px;
-                    padding: 20px;
-                    border-top: 1px solid #eee;
-                }
-                .gallery-actions button {
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-                .export-btn {
-                    background: #007bff;
-                    color: white;
-                }
-                .clear-btn {
-                    background: #dc3545;
-                    color: white;
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-        
-        // Add event listeners
-        modal.querySelector('.close-gallery').onclick = () => modal.remove();
-        modal.querySelector('.export-btn').onclick = () => {
-            this.exportDatabase();
-            modal.remove();
-        };
-        modal.querySelector('.clear-btn').onclick = () => {
-            if (confirm('Bạn có chắc muốn xóa tất cả ảnh?')) {
-                this.clearDatabase();
-                modal.remove();
-            }
-        };
-        
-        // Close on background click
-        modal.onclick = (e) => {
-            if (e.target === modal) modal.remove();
-        };
-        
-        document.body.appendChild(modal);
+            const listItems = this.database.map(item => `
+            <li>
+                <strong>STT:</strong> ${item.id}<br>
+                <strong>Thời gian:</strong> ${new Date(item.timestamp).toLocaleString()}<br>
+                ${item.notes ? `<strong>Ghi chú:</strong> ${this.escapeHTML(item.notes)}<br>` : ''}
+                <img src="${item.image}" alt="Detection Image" width="200">
+            </li>
+        `).join('');
+
+        this.dbList.innerHTML = `<ul>${listItems}</ul>`;
     }
-    
-    showNotification(message, type = 'info') {
-        try {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `demo-notification ${type}`;
-            notification.textContent = message;
 
-            // Add notification styles if not exists
-            if (!document.getElementById('notification-styles')) {
-                const styles = document.createElement('style');
-                styles.id = 'notification-styles';
-                styles.textContent = `
-                    .demo-notification {
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        padding: 15px 20px;
-                        border-radius: 5px;
-                        font-weight: bold;
-                        z-index: 9999;
-                        max-width: 300px;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                        animation: slideIn 0.3s ease-out;
-                        font-family: Arial, sans-serif;
-                        font-size: 14px;
-                        line-height: 1.4;
-                    }
-                    .demo-notification.success {
-                        background: #d4edda;
-                        color: #155724;
-                        border-left: 4px solid #28a745;
-                    }
-                    .demo-notification.error {
-                        background: #f8d7da;
-                        color: #721c24;
-                        border-left: 4px solid #dc3545;
-                    }
-                    .demo-notification.warning {
-                        background: #fff3cd;
-                        color: #856404;
-                        border-left: 4px solid #ffc107;
-                    }
-                    .demo-notification.info {
-                        background: #d1ecf1;
-                        color: #0c5460;
-                        border-left: 4px solid #17a2b8;
-                    }
-                    @keyframes slideIn {
-                        from { transform: translateX(100%); opacity: 0; }
-                        to { transform: translateX(0); opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(styles);
-            }
-
-            // Add to page
-            document.body.appendChild(notification);
-
-            // Auto remove after 4 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.style.animation = 'slideIn 0.3s ease-out reverse';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 4000);
-
-        } catch (error) {
-            // Fallback to console and alert
-            console.log(`${type.toUpperCase()}: ${message}`);
-            if (type === 'error') {
-                alert(`❌ ${message}`);
-            }
-        }
-    }
-    
-    triggerAlert() {
-        // Simple alert for demo
-        if (Date.now() - this.lastDetectionTime > 3000) { // Throttle alerts
-            console.log('🚨 CẢNH BÁO: Phát hiện ngủ gật!');
-            this.lastDetectionTime = Date.now();
-        }
+    escapeHTML(str) {
+        return str.replace(/[&<>"']/g, (match) => {
+            const escape = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return escape[match];
+        });
     }
 }
 

@@ -250,6 +250,47 @@
                 opacity: 1;
             }
         }
+        
+        .notes-container {
+            margin-top: 20px;
+        }
+        
+        .notes-container label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .notes-container textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: none;
+        }
+        
+        .database-controls {
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .database-controls button {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .database-controls button:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -299,6 +340,15 @@
             <button id="stopDemo" class="btn stop-btn" style="display: none;">⏹️ Dừng Demo</button>
             <button id="capturePhoto" class="btn capture-btn">📸 Chụp Ảnh</button>
             <button id="viewGallery" class="btn gallery-btn">🖼️ Xem Ảnh</button>
+        </div>
+
+        <div class="notes-container">
+            <label for="notesInput">Ghi chú:</label>
+            <textarea id="notesInput" placeholder="Thêm ghi chú cho lần phát hiện tiếp theo..."></textarea>
+        </div>
+
+        <div class="database-controls">
+            <button id="clearDbBtn">Xóa lịch sử</button>
         </div>
     </div>
 
