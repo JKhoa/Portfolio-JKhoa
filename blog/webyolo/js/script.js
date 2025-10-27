@@ -357,12 +357,19 @@ async function getAIResponse(message) {
             console.log('Attempting to connect to Groq API...');
             
             // Tạo context từ bộ nhớ người dùng
-            let systemPrompt = `Bạn là AI assistant thông minh cho YOLO project. 
+            let systemPrompt = `Bạn là AI assistant thông minh và hữu ích. Bạn có thể trả lời mọi câu hỏi về bất kỳ chủ đề nào.
 
 QUAN TRỌNG - NGÔN NGỮ:
 - LUÔN LUÔN trả lời bằng tiếng Việt trừ khi được yêu cầu rõ ràng "answer in English" hoặc "trả lời bằng tiếng Anh"
 - Nếu user hỏi bằng tiếng Anh nhưng KHÔNG yêu cầu trả lời bằng tiếng Anh, vẫn trả lời bằng tiếng Việt
 - Chỉ trả lời bằng tiếng Anh khi có yêu cầu cụ thể
+
+CHUYÊN MÔN CHÍNH:
+- Computer Vision và Machine Learning
+- YOLO Object Detection
+- Drowsiness Detection
+- Web Development (Frontend/Backend)
+- AI và Deep Learning
 
 THÔNG TIN NGƯỜI DÙNG:`;
 
@@ -379,11 +386,13 @@ THÔNG TIN NGƯỜI DÙNG:`;
             }
 
             systemPrompt += `\n\nHÃY:
+- Trả lời mọi câu hỏi một cách hữu ích và chính xác
+- Nếu câu hỏi không liên quan đến chuyên môn chính, vẫn trả lời đầy đủ
 - Sử dụng thông tin cá nhân để đưa ra câu trả lời phù hợp
 - Thân thiện và cá nhân hóa
-- Chuyên về computer vision, machine learning, YOLO object detection
 - Nhớ các cuộc trò chuyện trước đó
-- Luôn trả lời bằng tiếng Việt trừ khi được yêu cầu rõ ràng khác`;
+- Luôn trả lời bằng tiếng Việt trừ khi được yêu cầu rõ ràng khác
+- Nếu không biết câu trả lời, hãy thành thật và đề xuất cách tìm hiểu thêm`;
 
             // Thêm lịch sử trò chuyện vào context
             const messages = [{ role: 'system', content: systemPrompt }];
@@ -538,7 +547,10 @@ function getIntelligentFallbackResponse(message) {
             `${greeting}Tôi có thể hỗ trợ bạn về nhiều chủ đề: YOLO algorithm, computer vision, machine learning, hoặc cách sử dụng demo này. Bạn muốn tìm hiểu gì?`,
             `${greeting}Hãy cho tôi biết bạn quan tâm đến khía cạnh nào của dự án: lý thuyết YOLO, cách hoạt động của camera demo, hay kỹ thuật implementation?`,
             `${greeting}🤔 Bạn có thể hỏi tôi về: YOLO algorithm, object detection, computer vision, hoặc cách sử dụng các tính năng của website này.`,
-            `${greeting}💡 Tôi sẵn sàng giải thích về YOLO, machine learning, hoặc hướng dẫn sử dụng camera demo. Bạn muốn biết gì?`
+            `${greeting}💡 Tôi sẵn sàng giải thích về YOLO, machine learning, hoặc hướng dẫn sử dụng camera demo. Bạn muốn biết gì?`,
+            `${greeting}Đây là một câu hỏi thú vị! Tôi có thể giúp bạn với nhiều chủ đề khác nhau. Bạn có muốn hỏi về công nghệ, học tập, hay điều gì khác không?`,
+            `${greeting}Tôi là AI assistant đa năng! Có thể trả lời về YOLO, computer vision, hoặc bất kỳ chủ đề nào bạn quan tâm. Hãy hỏi tôi!`,
+            `${greeting}🎯 Tôi có thể giúp bạn với nhiều câu hỏi khác nhau. Từ công nghệ AI đến cuộc sống hàng ngày, cứ hỏi thoải mái!`
         ]
     };
 
