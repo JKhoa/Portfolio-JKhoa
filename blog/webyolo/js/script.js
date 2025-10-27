@@ -306,14 +306,20 @@ if (testAI) {
 
 // Load and update AI status
 function loadSettings() {
+    console.log('loadSettings called');
     if (groqApiKey && aiStatus) {
         const savedApiKey = localStorage.getItem('groq_api_key');
+        console.log('Saved API key exists:', !!savedApiKey);
+        console.log('API key length:', savedApiKey ? savedApiKey.length : 0);
+        
         if (savedApiKey) {
             groqApiKey.value = savedApiKey;
             updateAIStatus('Groq AI (Thực)', 'connected');
+            console.log('AI status updated to Groq AI (Thực)');
         } else {
             groqApiKey.value = '';
             updateAIStatus('AI Mô Phỏng (Local)', 'local');
+            console.log('AI status updated to AI Mô Phỏng (Local)');
         }
     }
 
@@ -361,14 +367,20 @@ function updateAIStatus(text, type) {
 
 // AI response system
 async function getAIResponse(message) {
+    console.log('getAIResponse called with message:', message);
+    
     // Phân tích tin nhắn để cập nhật bộ nhớ người dùng
     analyzeUserMessage(message);
 
     const apiKey = localStorage.getItem('groq_api_key');
+    console.log('API key from localStorage:', !!apiKey);
+    console.log('API key length:', apiKey ? apiKey.length : 0);
+    
     const userMemory = getUserMemory();
     const conversationHistory = getConversationHistory().slice(-5); // 5 cuộc trò chuyện gần nhất
 
     if (apiKey) {
+        console.log('API key found, attempting Groq API call');
         try {
             console.log('Attempting to connect to Groq API...');
             
@@ -459,14 +471,14 @@ THÔNG TIN NGƯỜI DÙNG:`;
                 console.log('Groq API response data:', data);
                 
                 if (data.choices && data.choices[0] && data.choices[0].message) {
-                    const botResponse = data.choices[0].message.content;
+                const botResponse = data.choices[0].message.content;
 
-                    // Lưu cuộc trò chuyện
-                    saveConversation(message, botResponse);
+                // Lưu cuộc trò chuyện
+                saveConversation(message, botResponse);
 
                     console.log('Successfully got AI response from Groq');
-                    return botResponse;
-                } else {
+                return botResponse;
+            } else {
                     console.error('Invalid response structure from Groq API:', data);
                     throw new Error('Invalid response from Groq API');
                 }
@@ -507,6 +519,7 @@ THÔNG TIN NGƯỜI DÙNG:`;
         }
     } else {
         console.log('No API key found, using fallback response');
+        console.log('Falling back to getIntelligentFallbackResponse');
     // Fallback to intelligent simulated responses using user memory
     return getIntelligentFallbackResponse(message);
     }
@@ -707,6 +720,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // Send message function
 async function sendChatbotMessage() {
     const message = chatbotInput.value.trim();
+    console.log('sendChatbotMessage called with message:', message);
+    
     if (message === '') return;
 
     // Add user message
@@ -717,8 +732,10 @@ async function sendChatbotMessage() {
     addMessage('🤖 Đang suy nghĩ...', 'bot');
 
     try {
+        console.log('Calling getAIResponse...');
         // Get AI response
         const response = await getAIResponse(message);
+        console.log('Got response from getAIResponse:', response);
 
         // Remove typing indicator
         const messages = chatbotMessages.children;
@@ -728,6 +745,7 @@ async function sendChatbotMessage() {
 
         addMessage(response, 'bot');
     } catch (error) {
+        console.error('Error in sendChatbotMessage:', error);
         // Remove typing indicator and show error
         const messages = chatbotMessages.children;
         if (messages.length > 0 && messages[messages.length - 1].textContent.includes('Đang suy nghĩ')) {
