@@ -291,6 +291,7 @@ if (testAI) {
                 addMessage('🤖 ' + testResponse, 'bot');
             } else {
                 addMessage('❌ Test thất bại: ' + testResponse, 'bot');
+                console.error('Test failed with response:', testResponse);
             }
             
             testBtn.textContent = originalText;
@@ -430,6 +431,10 @@ THÔNG TIN NGƯỜI DÙNG:`;
             console.log('API Key present:', !!apiKey);
             console.log('Model: llama3-8b-8192');
 
+            // Tạo AbortController để timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 giây timeout
+
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -442,9 +447,11 @@ THÔNG TIN NGƯỜI DÙNG:`;
                     max_tokens: 1000,
                     temperature: 0.7,
                     stream: false
-                })
+                }),
+                signal: controller.signal
             });
 
+            clearTimeout(timeoutId);
             console.log('Groq API response status:', response.status);
 
             if (response.ok) {
@@ -452,14 +459,14 @@ THÔNG TIN NGƯỜI DÙNG:`;
                 console.log('Groq API response data:', data);
                 
                 if (data.choices && data.choices[0] && data.choices[0].message) {
-                const botResponse = data.choices[0].message.content;
+                    const botResponse = data.choices[0].message.content;
 
-                // Lưu cuộc trò chuyện
-                saveConversation(message, botResponse);
+                    // Lưu cuộc trò chuyện
+                    saveConversation(message, botResponse);
 
                     console.log('Successfully got AI response from Groq');
-                return botResponse;
-            } else {
+                    return botResponse;
+                } else {
                     console.error('Invalid response structure from Groq API:', data);
                     throw new Error('Invalid response from Groq API');
                 }
@@ -481,12 +488,18 @@ THÔNG TIN NGƯỜI DÙNG:`;
             console.error('Groq API failed:', error);
             
             // Hiển thị lỗi cụ thể cho user và KHÔNG fallback về simulated AI
-            if (error.message.includes('API key')) {
+            if (error.name === 'AbortError') {
+                addMessage('❌ Request timeout. API không phản hồi trong 30 giây.', 'bot');
+                return '❌ Request timeout. API không phản hồi trong 30 giây. Vui lòng thử lại.';
+            } else if (error.message.includes('API key')) {
                 addMessage('❌ ' + error.message + ' Vui lòng kiểm tra Settings ⚙️', 'bot');
                 return '❌ API key không hợp lệ. Vui lòng kiểm tra lại API key trong Settings ⚙️';
-            } else if (error.message.includes('fetch')) {
+            } else if (error.message.includes('fetch') || error.message.includes('network')) {
                 addMessage('❌ Không thể kết nối đến Groq API. Kiểm tra kết nối internet.', 'bot');
                 return '❌ Không thể kết nối đến Groq API. Vui lòng kiểm tra kết nối internet và thử lại.';
+            } else if (error.message.includes('429')) {
+                addMessage('❌ Quá nhiều request. Vui lòng đợi và thử lại sau.', 'bot');
+                return '❌ Quá nhiều request. Vui lòng đợi và thử lại sau.';
             } else {
                 addMessage('❌ Lỗi kết nối API: ' + error.message, 'bot');
                 return '❌ Lỗi kết nối API: ' + error.message + '. Vui lòng thử lại sau.';
