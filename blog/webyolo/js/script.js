@@ -1079,12 +1079,16 @@ class DrowsinessDetector {
 
     // Database management methods
     loadDatabase() {
+        console.log('loadDatabase called');
         try {
             const stored = localStorage.getItem(this.DATABASE_KEY);
             this.imageDatabase = stored ? JSON.parse(stored) : [];
             
+            console.log('Loaded from localStorage:', this.imageDatabase.length, 'items');
+            
             // Nếu không có dữ liệu, tạo dữ liệu mẫu
             if (this.imageDatabase.length === 0) {
+                console.log('No data found, creating sample data');
                 this.createSampleData();
             }
             
@@ -1102,6 +1106,7 @@ class DrowsinessDetector {
 
     // Tạo dữ liệu mẫu để demo
     createSampleData() {
+        console.log('createSampleData called');
         const sampleData = [
             {
                 id: 1,
@@ -1172,16 +1177,27 @@ class DrowsinessDetector {
 
     // Cập nhật thống kê database
     updateDatabaseStats() {
+        console.log('updateDatabaseStats called, imageDatabase length:', this.imageDatabase.length);
+        
         const totalDetections = this.imageDatabase.length;
         const sleepingCount = this.imageDatabase.filter(item => item.detection.status === 'sleeping').length;
         const drowsyCount = this.imageDatabase.filter(item => item.detection.status === 'drowsy').length;
         const awakeCount = this.imageDatabase.filter(item => item.detection.status === 'awake').length;
+        
+        console.log('Stats:', { totalDetections, sleepingCount, drowsyCount, awakeCount });
         
         // Cập nhật UI
         const totalDetectionsEl = document.getElementById('totalDetections');
         const sleepingCountEl = document.getElementById('sleepingCount');
         const drowsyCountEl = document.getElementById('drowsyCount');
         const todayCountEl = document.getElementById('todayCount');
+
+        console.log('Elements found:', { 
+            totalDetectionsEl: !!totalDetectionsEl, 
+            sleepingCountEl: !!sleepingCountEl, 
+            drowsyCountEl: !!drowsyCountEl, 
+            todayCountEl: !!todayCountEl 
+        });
 
         if (totalDetectionsEl) totalDetectionsEl.textContent = totalDetections;
         if (sleepingCountEl) sleepingCountEl.textContent = sleepingCount;
@@ -1190,13 +1206,17 @@ class DrowsinessDetector {
 
         // Cập nhật database status
         const dbStatusEl = document.getElementById('dbStatus');
+        console.log('dbStatusEl found:', !!dbStatusEl);
+        
         if (dbStatusEl) {
             if (totalDetections > 0) {
                 dbStatusEl.textContent = `Đã kết nối (${totalDetections} records)`;
                 dbStatusEl.style.color = '#4CAF50'; // Màu xanh
+                console.log('Database status updated to connected');
             } else {
                 dbStatusEl.textContent = 'Chưa có dữ liệu';
                 dbStatusEl.style.color = '#FF9800'; // Màu cam
+                console.log('Database status updated to no data');
             }
         }
     }
