@@ -452,14 +452,14 @@ THÔNG TIN NGƯỜI DÙNG:`;
                 console.log('Groq API response data:', data);
                 
                 if (data.choices && data.choices[0] && data.choices[0].message) {
-                    const botResponse = data.choices[0].message.content;
+                const botResponse = data.choices[0].message.content;
 
-                    // Lưu cuộc trò chuyện
-                    saveConversation(message, botResponse);
+                // Lưu cuộc trò chuyện
+                saveConversation(message, botResponse);
 
                     console.log('Successfully got AI response from Groq');
-                    return botResponse;
-                } else {
+                return botResponse;
+            } else {
                     console.error('Invalid response structure from Groq API:', data);
                     throw new Error('Invalid response from Groq API');
                 }
@@ -494,8 +494,8 @@ THÔNG TIN NGƯỜI DÙNG:`;
         }
     } else {
         console.log('No API key found, using fallback response');
-        // Fallback to intelligent simulated responses using user memory
-        return getIntelligentFallbackResponse(message);
+    // Fallback to intelligent simulated responses using user memory
+    return getIntelligentFallbackResponse(message);
     }
 }
 
@@ -582,7 +582,7 @@ function getIntelligentFallbackResponse(message) {
     // Logic phân tích và phản hồi thông minh với tránh lặp lại
     let selectedCategory = 'general';
     let responses = [];
-    
+
     if (lowerMessage.includes('yolo') || lowerMessage.includes('object detection')) {
         selectedCategory = 'yolo';
         responses = responseDatabase.yolo;
@@ -691,21 +691,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeChatbot();
 });
 
-// Simple chatbot responses
-const chatbotResponses = {
-    'yolo': 'YOLO (You Only Look Once) là một thuật toán nhận dạng đối tượng thời gian thực được phát triển bởi Joseph Redmon. Nó có thể phát hiện và phân loại nhiều đối tượng trong một hình ảnh chỉ với một lần nhìn.',
-    'cnn': 'CNN (Convolutional Neural Network) là kiến trúc mạng nơ-ron chuyên biệt cho xử lý dữ liệu có cấu trúc lưới như hình ảnh. Nó sử dụng các lớp tích chập để trích xuất đặc trưng.',
-    'nhận diện': 'Nhận diện đối tượng là quá trình xác định và định vị các đối tượng trong hình ảnh hoặc video. Các thuật toán phổ biến bao gồm R-CNN, SSD, và YOLO.',
-    'ngủ gật': 'Phát hiện ngủ gật là ứng dụng của computer vision để nhận diện trạng thái mệt mỏi của sinh viên trong lớp học, giúp cải thiện chất lượng học tập.',
-    'huấn luyện': 'Quá trình huấn luyện YOLO bao gồm: thu thập dữ liệu, gán nhãn, tiền xử lý, huấn luyện mô hình và đánh giá hiệu suất.',
-    'mAP': 'mAP (Mean Average Precision) là chỉ số đánh giá độ chính xác của mô hình nhận diện đối tượng. Giá trị càng cao càng tốt.',
-    'precision': 'Precision (Độ chính xác) đo lường tỷ lệ dự đoán đúng trong tổng số dự đoán dương tính.',
-    'recall': 'Recall (Độ bao phủ) đo lường tỷ lệ dự đoán đúng trong tổng số trường hợp thực tế dương tính.',
-    'khoa': 'Tôi là Nguyễn Hoàng Anh Khoa, sinh viên năm cuối ngành Công nghệ thông tin tại Đại học Đà Lạt. Đây là dự án nghiên cứu về YOLO của tôi.',
-    'portfolio': 'Bạn có thể xem thêm các dự án khác của tôi tại trang Portfolio chính.',
-    'liên hệ': 'Bạn có thể liên hệ với tôi qua email: nhakhoa1004@gmail.com hoặc số điện thoại: 0395123864'
-};
-
 // Send message function
 async function sendChatbotMessage() {
     const message = chatbotInput.value.trim();
@@ -754,19 +739,6 @@ function addMessage(text, sender) {
 
     // Scroll to bottom
     chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-}
-
-// Get chatbot response
-function getChatbotResponse(message) {
-    const lowerMessage = message.toLowerCase();
-
-    for (const [keyword, response] of Object.entries(chatbotResponses)) {
-        if (lowerMessage.includes(keyword)) {
-            return response;
-        }
-    }
-
-    return 'Xin chào! Tôi có thể giúp bạn tìm hiểu về YOLO, CNN, nhận diện đối tượng, ngủ gật, huấn luyện, mAP, precision, recall, hoặc liên hệ với tác giả.';
 }
 
 // Event listeners for chatbot
