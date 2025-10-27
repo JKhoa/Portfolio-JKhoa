@@ -354,6 +354,8 @@ async function getAIResponse(message) {
 
     if (apiKey) {
         try {
+            console.log('Attempting to connect to Groq API...');
+            
             // Tạo context từ bộ nhớ người dùng
             let systemPrompt = `Bạn là AI assistant thông minh cho YOLO project. 
 
@@ -372,7 +374,7 @@ THÔNG TIN NGƯỜI DÙNG:`;
                 systemPrompt += `\n- Sở thích: ${userMemory.interests.join(', ')}`;
             }
 
-            if (userMemory.personal_info ? .profession) {
+            if (userMemory.personal_info?.profession) {
                 systemPrompt += `\n- Nghề nghiệp: ${userMemory.personal_info.profession}`;
             }
 
@@ -395,6 +397,8 @@ THÔNG TIN NGƯỜI DÙNG:`;
             // Thêm tin nhắn hiện tại
             messages.push({ role: 'user', content: message });
 
+            console.log('Sending request to Groq API with', messages.length, 'messages');
+
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -409,20 +413,52 @@ THÔNG TIN NGƯỜI DÙNG:`;
                 })
             });
 
+            console.log('Groq API response status:', response.status);
+
             if (response.ok) {
                 const data = await response.json();
-                const botResponse = data.choices[0].message.content;
+                console.log('Groq API response data:', data);
+                
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const botResponse = data.choices[0].message.content;
 
-                // Lưu cuộc trò chuyện
-                saveConversation(message, botResponse);
+                    // Lưu cuộc trò chuyện
+                    saveConversation(message, botResponse);
 
-                return botResponse;
+                    console.log('Successfully got AI response from Groq');
+                    return botResponse;
+                } else {
+                    console.error('Invalid response structure from Groq API:', data);
+                    throw new Error('Invalid response from Groq API');
+                }
             } else {
-                console.log('Groq API error:', response.status);
+                const errorData = await response.text();
+                console.error('Groq API error:', response.status, errorData);
+                
+                if (response.status === 401) {
+                    throw new Error('API key không hợp lệ. Vui lòng kiểm tra lại API key.');
+                } else if (response.status === 429) {
+                    throw new Error('Quá nhiều request. Vui lòng thử lại sau.');
+                } else if (response.status >= 500) {
+                    throw new Error('Lỗi server từ Groq API. Vui lòng thử lại sau.');
+                } else {
+                    throw new Error(`Lỗi API: ${response.status}`);
+                }
             }
         } catch (error) {
-            console.log('Groq API failed:', error);
+            console.error('Groq API failed:', error);
+            
+            // Hiển thị lỗi cụ thể cho user
+            if (error.message.includes('API key')) {
+                addMessage('❌ ' + error.message + ' Vui lòng kiểm tra Settings ⚙️', 'bot');
+            } else if (error.message.includes('fetch')) {
+                addMessage('❌ Không thể kết nối đến Groq API. Kiểm tra kết nối internet.', 'bot');
+            } else {
+                addMessage('❌ Lỗi kết nối API: ' + error.message + '. Chuyển sang chế độ mô phỏng.', 'bot');
+            }
         }
+    } else {
+        console.log('No API key found, using fallback response');
     }
 
     // Fallback to intelligent simulated responses using user memory
@@ -443,46 +479,112 @@ function getIntelligentFallbackResponse(message) {
     // Phân tích câu hỏi để đưa ra phản hồi phù hợp
     const lowerMessage = message.toLowerCase();
 
+    // Database các phản hồi thông minh
+    const responseDatabase = {
+        yolo: [
+            `${greeting}YOLO (You Only Look Once) là thuật toán nhận dạng đối tượng thời gian thực được phát triển bởi Joseph Redmon vào năm 2016. Nó có thể phát hiện và phân loại nhiều đối tượng trong một hình ảnh chỉ với một lần nhìn, rất hiệu quả cho ứng dụng thời gian thực!`,
+            `${greeting}YOLO là một breakthrough trong computer vision! Khác với R-CNN hay SSD, YOLO xử lý toàn bộ hình ảnh trong một lần forward pass, giúp đạt tốc độ cao hơn nhiều. Trong dự án này, chúng ta sử dụng YOLO để phát hiện trạng thái ngủ gật của sinh viên.`,
+            `${greeting}YOLO có nhiều phiên bản từ v1 (2016) đến v8 (2023). Mỗi phiên bản đều có cải tiến về độ chính xác và tốc độ. Dự án này đạt được mAP 94.2% và chạy với tốc độ 25 FPS!`
+        ],
+        detection: [
+            `${greeting}Nhận diện đối tượng (Object Detection) là quá trình xác định và định vị các đối tượng trong hình ảnh hoặc video. Các thuật toán phổ biến bao gồm R-CNN, SSD, và YOLO.`,
+            `${greeting}Trong dự án này, chúng ta sử dụng computer vision để phát hiện các dấu hiệu ngủ gật như nhắm mắt, cúi đầu, hoặc giảm hoạt động của mắt.`,
+            `${greeting}Quá trình nhận diện bao gồm: thu thập dữ liệu → gán nhãn → huấn luyện mô hình → đánh giá hiệu suất.`
+        ],
+        machine_learning: [
+            `${greeting}Machine Learning là lĩnh vực nghiên cứu các thuật toán và mô hình thống kê cho phép máy tính học từ dữ liệu mà không cần được lập trình rõ ràng.`,
+            `${greeting}Deep Learning là một nhánh của ML sử dụng mạng nơ-ron nhân tạo với nhiều lớp để học các đặc trưng phức tạp từ dữ liệu.`,
+            `${greeting}CNN (Convolutional Neural Network) là kiến trúc mạng nơ-ron chuyên biệt cho xử lý dữ liệu có cấu trúc lưới như hình ảnh.`
+        ],
+        project: [
+            `${greeting}Đây là dự án nghiên cứu về ứng dụng YOLO trong phát hiện sinh viên ngủ gật trong lớp học. Mục tiêu là cải thiện chất lượng học tập và giúp giáo viên theo dõi tình trạng sinh viên.`,
+            `${greeting}Dự án được thực hiện bởi Nguyễn Hoàng Anh Khoa, sinh viên năm cuối ngành Công nghệ thông tin tại Đại học Đà Lạt.`,
+            `${greeting}Kết quả đạt được: mAP 94.2%, Precision 96.8%, Recall 92.1%, tốc độ xử lý 25 FPS.`
+        ],
+        greeting: [
+            `Xin chào ${userMemory.name || 'bạn'}! Tôi là AI Assistant cho dự án YOLO nhận diện ngủ gật. Tôi có thể giúp bạn tìm hiểu về computer vision, machine learning, và các thuật toán YOLO.`,
+            `Chào ${userMemory.name || 'bạn'}! Rất vui được gặp bạn. Tôi đang chạy ở chế độ demo - hãy thêm API key trong Settings ⚙️ để có trải nghiệm AI thực!`,
+            `Hello ${userMemory.name || 'bạn'}! Tôi có thể trả lời các câu hỏi về YOLO, object detection, và dự án nghiên cứu này.`
+        ],
+        contact: [
+            `${greeting}Bạn có thể liên hệ với tác giả qua email: nhakhoa1004@gmail.com hoặc số điện thoại: 0395123864`,
+            `${greeting}Để biết thêm chi tiết về dự án, hãy liên hệ Nguyễn Hoàng Anh Khoa qua email nhakhoa1004@gmail.com`,
+            `${greeting}Thông tin liên hệ: Email nhakhoa1004@gmail.com, Phone 0395123864`
+        ],
+        thanks: [
+            `${greeting}Rất vui được giúp đỡ bạn! Hy vọng thông tin hữu ích cho việc nghiên cứu của bạn.`,
+            `${greeting}Cảm ơn bạn đã quan tâm đến dự án! Chúc bạn học tập và nghiên cứu thành công.`,
+            `${greeting}Không có gì! Nếu có câu hỏi gì khác về YOLO hoặc computer vision, cứ hỏi nhé!`
+        ]
+    };
+
+    // Logic phân tích và phản hồi thông minh
     if (lowerMessage.includes('yolo') || lowerMessage.includes('object detection')) {
-        response = `${greeting}YOLO (You Only Look Once) là một thuật toán nhận dạng đối tượng thời gian thực rất mạnh mẽ! `;
-        if (userMemory.personal_info ? .profession === 'sinh viên') {
-            response += "Đây là chủ đề rất thú vị cho nghiên cứu học tập của bạn. ";
+        const responses = responseDatabase.yolo;
+        response = responses[Math.floor(Math.random() * responses.length)];
+        if (userMemory.personal_info?.profession === 'sinh viên') {
+            response += " Đây là chủ đề rất thú vị cho nghiên cứu học tập của bạn!";
         }
-        response += "Đây là AI demo - hãy thêm API key trong Settings ⚙️ để có câu trả lời chi tiết hơn!";
-    } else if (lowerMessage.includes('machine learning') || lowerMessage.includes('ai')) {
-        response = `${greeting}Machine Learning và AI là lĩnh vực rất hấp dẫn! `;
+        response += " Đây là AI demo - hãy thêm API key trong Settings ⚙️ để có câu trả lời chi tiết hơn!";
+    } else if (lowerMessage.includes('machine learning') || lowerMessage.includes('ai') || lowerMessage.includes('deep learning')) {
+        const responses = responseDatabase.machine_learning;
+        response = responses[Math.floor(Math.random() * responses.length)];
         if (userMemory.interests && userMemory.interests.includes('machine learning')) {
-            response += "Tôi nhớ bạn có quan tâm đến ML rồi. ";
+            response += " Tôi nhớ bạn có quan tâm đến ML rồi!";
         }
-        response += "Để có trải nghiệm AI thực, hãy cấu hình API key trong Settings!";
-    } else if (lowerMessage.includes('xin chào') || lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
-        response = `Xin chào ${userMemory.name || 'bạn'}! `;
+        response += " Để có trải nghiệm AI thực, hãy cấu hình API key trong Settings!";
+    } else if (lowerMessage.includes('nhận diện') || lowerMessage.includes('detection')) {
+        const responses = responseDatabase.detection;
+        response = responses[Math.floor(Math.random() * responses.length)];
+    } else if (lowerMessage.includes('dự án') || lowerMessage.includes('project') || lowerMessage.includes('khoa')) {
+        const responses = responseDatabase.project;
+        response = responses[Math.floor(Math.random() * responses.length)];
+    } else if (lowerMessage.includes('xin chào') || lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('chào')) {
+        const responses = responseDatabase.greeting;
+        response = responses[Math.floor(Math.random() * responses.length)];
         if (conversationHistory.length > 0) {
-            response += "Vui lòng gặp lại bạn! ";
+            response += " Vui lòng gặp lại bạn!";
         }
-        response += "Tôi đang chạy ở chế độ demo. Vào Settings ⚙️ để kết nối AI thực nhé!";
-    } else if (lowerMessage.includes('tên') && lowerMessage.includes('gì')) {
+    } else if (lowerMessage.includes('tên') && (lowerMessage.includes('gì') || lowerMessage.includes('ai'))) {
         response = `Tôi là AI Assistant cho YOLO project! `;
         if (userMemory.name) {
             response += `Còn bạn là ${userMemory.name} đúng không? `;
         }
         response += "Đây là phiên bản demo - thêm API key để có trải nghiệm đầy đủ!";
     } else if (lowerMessage.includes('cảm ơn') || lowerMessage.includes('thank')) {
-        response = `${greeting}Rất vui được giúp đỡ bạn! `;
+        const responses = responseDatabase.thanks;
+        response = responses[Math.floor(Math.random() * responses.length)];
         if (userMemory.interests && userMemory.interests.length > 0) {
-            response += `Hy vọng thông tin về ${userMemory.interests[0]} hữu ích với bạn. `;
+            response += ` Hy vọng thông tin về ${userMemory.interests[0]} hữu ích với bạn.`;
         }
-        response += "Đây là AI demo - Settings ⚙️ để trải nghiệm AI thực!";
+    } else if (lowerMessage.includes('liên hệ') || lowerMessage.includes('contact') || lowerMessage.includes('email')) {
+        const responses = responseDatabase.contact;
+        response = responses[Math.floor(Math.random() * responses.length)];
+    } else if (lowerMessage.includes('mAP') || lowerMessage.includes('precision') || lowerMessage.includes('recall')) {
+        response = `${greeting}Các chỉ số đánh giá quan trọng trong object detection:
+- mAP (Mean Average Precision): 94.2% - đo độ chính xác tổng thể
+- Precision: 96.8% - tỷ lệ dự đoán đúng trong tổng số dự đoán dương tính  
+- Recall: 92.1% - tỷ lệ dự đoán đúng trong tổng số trường hợp thực tế
+- FPS: 25 - tốc độ xử lý khung hình mỗi giây`;
+    } else if (lowerMessage.includes('cài đặt') || lowerMessage.includes('settings') || lowerMessage.includes('api')) {
+        response = `${greeting}Để sử dụng AI thực, bạn cần:
+1. Vào Settings ⚙️ (biểu tượng bánh răng)
+2. Nhập Groq API key (miễn phí tại console.groq.com/keys)
+3. Lưu cài đặt
+4. Thử lại chatbot!
+
+Hiện tại bạn đang dùng AI mô phỏng với phản hồi cơ bản.`;
     } else {
-        // Phản hồi chung thông minh
-        const responses = [
-            `${greeting}Đây là phản hồi từ AI mô phỏng về: "${message}". Hãy mở Settings ⚙️ để thêm API key và có câu trả lời chi tiết!`,
-            `${greeting}Tôi hiểu bạn quan tâm đến điều này. Đây là AI demo - cấu hình API key để có trải nghiệm tốt hơn!`,
-            `${greeting}Câu hỏi thú vị! Để có phản hồi chuyên sâu, hãy thêm API key trong Settings.`,
-            `${greeting}Rất vui được trao đổi với bạn! Đây là chế độ demo - Settings ⚙️ để kết nối AI thực.`
+        // Phản hồi chung thông minh với nhiều biến thể
+        const generalResponses = [
+            `${greeting}Câu hỏi thú vị về "${message}"! Tôi có thể giúp bạn tìm hiểu về YOLO, computer vision, machine learning, hoặc dự án nghiên cứu này. Để có phản hồi chi tiết hơn, hãy thêm API key trong Settings ⚙️`,
+            `${greeting}Tôi hiểu bạn quan tâm đến "${message}". Đây là AI demo với kiến thức cơ bản. Vào Settings ⚙️ để kết nối AI thực và có câu trả lời chuyên sâu!`,
+            `${greeting}Rất vui được trao đổi với bạn về "${message}"! Tôi chuyên về YOLO và computer vision. Settings ⚙️ để trải nghiệm AI đầy đủ!`,
+            `${greeting}Đây là phản hồi từ AI mô phỏng về "${message}". Tôi có thể giúp về YOLO, object detection, ML. Settings ⚙️ để có AI thực!`,
+            `${greeting}Câu hỏi hay! Về "${message}", tôi có thể chia sẻ kiến thức cơ bản. Để có phân tích sâu hơn, hãy cấu hình API key trong Settings ⚙️`
         ];
 
-        response = responses[Math.floor(Math.random() * responses.length)];
+        response = generalResponses[Math.floor(Math.random() * generalResponses.length)];
     }
 
     // Lưu cuộc trò chuyện
@@ -952,12 +1054,145 @@ class DrowsinessDetector {
         try {
             const stored = localStorage.getItem(this.DATABASE_KEY);
             this.imageDatabase = stored ? JSON.parse(stored) : [];
+            
+            // Nếu không có dữ liệu, tạo dữ liệu mẫu
+            if (this.imageDatabase.length === 0) {
+                this.createSampleData();
+            }
+            
             console.log(`Loaded ${this.imageDatabase.length} images from database`);
             this.updateImageGallery();
+            this.updateDatabaseStats();
         } catch (error) {
             console.error('Error loading database:', error);
             this.imageDatabase = [];
         }
+    }
+
+    // Tạo dữ liệu mẫu để demo
+    createSampleData() {
+        const sampleData = [
+            {
+                id: 1,
+                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 giờ trước
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkF3YWtlPC90ZXh0Pjwvc3ZnPg==',
+                detection: {
+                    status: 'awake',
+                    confidence: 95.2,
+                    eyeClosedFrames: 0,
+                    headDownFrames: 0
+                },
+                formatted_time: new Date(Date.now() - 2 * 60 * 60 * 1000).toLocaleString('vi-VN')
+            },
+            {
+                id: 2,
+                timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(), // 1.5 giờ trước
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZlYWE1Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkRyb3dzeTwvdGV4dD48L3N2Zz4=',
+                detection: {
+                    status: 'drowsy',
+                    confidence: 78.5,
+                    eyeClosedFrames: 8,
+                    headDownFrames: 5
+                },
+                formatted_time: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toLocaleString('vi-VN')
+            },
+            {
+                id: 3,
+                timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 giờ trước
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmY2YjYxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlNsZWVwaW5nPC90ZXh0Pjwvc3ZnPg==',
+                detection: {
+                    status: 'sleeping',
+                    confidence: 89.7,
+                    eyeClosedFrames: 20,
+                    headDownFrames: 15
+                },
+                formatted_time: new Date(Date.now() - 1 * 60 * 60 * 1000).toLocaleString('vi-VN')
+            },
+            {
+                id: 4,
+                timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 phút trước
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkF3YWtlPC90ZXh0Pjwvc3ZnPg==',
+                detection: {
+                    status: 'awake',
+                    confidence: 96.1,
+                    eyeClosedFrames: 0,
+                    headDownFrames: 0
+                },
+                formatted_time: new Date(Date.now() - 30 * 60 * 1000).toLocaleString('vi-VN')
+            },
+            {
+                id: 5,
+                timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 phút trước
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZlYWE1Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkRyb3dzeTwvdGV4dD48L3N2Zz4=',
+                detection: {
+                    status: 'drowsy',
+                    confidence: 82.3,
+                    eyeClosedFrames: 6,
+                    headDownFrames: 4
+                },
+                formatted_time: new Date(Date.now() - 15 * 60 * 1000).toLocaleString('vi-VN')
+            }
+        ];
+
+        this.imageDatabase = sampleData;
+        localStorage.setItem(this.DATABASE_KEY, JSON.stringify(this.imageDatabase));
+        console.log('Created sample data for demo');
+    }
+
+    // Cập nhật thống kê database
+    updateDatabaseStats() {
+        const totalDetections = this.imageDatabase.length;
+        const sleepingCount = this.imageDatabase.filter(item => item.detection.status === 'sleeping').length;
+        const drowsyCount = this.imageDatabase.filter(item => item.detection.status === 'drowsy').length;
+        const awakeCount = this.imageDatabase.filter(item => item.detection.status === 'awake').length;
+        
+        // Cập nhật UI
+        const totalDetectionsEl = document.getElementById('totalDetections');
+        const sleepingCountEl = document.getElementById('sleepingCount');
+        const drowsyCountEl = document.getElementById('drowsyCount');
+        const todayCountEl = document.getElementById('todayCount');
+
+        if (totalDetectionsEl) totalDetectionsEl.textContent = totalDetections;
+        if (sleepingCountEl) sleepingCountEl.textContent = sleepingCount;
+        if (drowsyCountEl) drowsyCountEl.textContent = drowsyCount;
+        if (todayCountEl) todayCountEl.textContent = totalDetections; // Giả sử tất cả là hôm nay
+    }
+
+    // Cập nhật gallery hiển thị
+    updateImageGallery() {
+        const galleryList = document.getElementById('databaseList');
+        if (!galleryList) return;
+
+        if (this.imageDatabase.length === 0) {
+            galleryList.innerHTML = '<p class="no-history">Chưa có dữ liệu trong database</p>';
+            return;
+        }
+
+        const galleryHTML = this.imageDatabase.map(item => {
+            const statusClass = item.detection.status === 'sleeping' ? 'status-sleeping' : 
+                               item.detection.status === 'drowsy' ? 'status-drowsy' : 'status-awake';
+            const statusText = item.detection.status === 'sleeping' ? 'Ngủ gật' : 
+                              item.detection.status === 'drowsy' ? 'Buồn ngủ' : 'Tỉnh táo';
+            
+            return `
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <img src="${item.image}" alt="Detection ${item.id}" />
+                        <div class="status-badge ${statusClass}">${statusText}</div>
+                    </div>
+                    <div class="gallery-info">
+                        <h4>Phát hiện #${item.id}</h4>
+                        <p><strong>Thời gian:</strong> ${item.formatted_time}</p>
+                        <p><strong>Trạng thái:</strong> <span class="${statusClass}">${statusText}</span></p>
+                        <p><strong>Độ tin cậy:</strong> ${item.detection.confidence}%</p>
+                        <p><strong>Eye Closed Frames:</strong> ${item.detection.eyeClosedFrames}</p>
+                        <p><strong>Head Down Frames:</strong> ${item.detection.headDownFrames}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        galleryList.innerHTML = galleryHTML;
     }
 
     saveToDatabase(imageData, detectionInfo) {
