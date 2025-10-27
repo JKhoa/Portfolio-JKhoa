@@ -273,13 +273,28 @@ if (testAI) {
         testBtn.disabled = true;
 
         try {
-            addMessage('🔍 Đang test AI...', 'bot');
-            // Simple test - just show that it works
-            setTimeout(() => {
-                addMessage('✅ Test thành công! AI hoạt động bình thường.', 'bot');
+            addMessage('🔍 Đang test AI với Groq API...', 'bot');
+            
+            const apiKey = localStorage.getItem('groq_api_key');
+            if (!apiKey) {
+                addMessage('❌ Chưa có API key. Vui lòng nhập Groq API key trước.', 'bot');
                 testBtn.textContent = originalText;
                 testBtn.disabled = false;
-            }, 1000);
+                return;
+            }
+
+            // Test thực sự với API
+            const testResponse = await getAIResponse('Xin chào! Bạn có thể giới thiệu về mình không?');
+            
+            if (testResponse && !testResponse.includes('❌')) {
+                addMessage('✅ Test thành công! AI Groq hoạt động bình thường.', 'bot');
+                addMessage('🤖 ' + testResponse, 'bot');
+            } else {
+                addMessage('❌ Test thất bại: ' + testResponse, 'bot');
+            }
+            
+            testBtn.textContent = originalText;
+            testBtn.disabled = false;
         } catch (error) {
             addMessage('❌ Test thất bại: ' + error.message, 'bot');
             testBtn.textContent = originalText;
@@ -357,7 +372,7 @@ async function getAIResponse(message) {
             console.log('Attempting to connect to Groq API...');
             
             // Tạo context từ bộ nhớ người dùng
-            let systemPrompt = `Bạn là AI assistant thông minh và hữu ích. Bạn có thể trả lời mọi câu hỏi về bất kỳ chủ đề nào.
+            let systemPrompt = `Bạn là AI assistant thông minh và hữu ích, tương tự như ChatGPT. Bạn có thể trả lời mọi câu hỏi về bất kỳ chủ đề nào một cách chi tiết và chính xác.
 
 QUAN TRỌNG - NGÔN NGỮ:
 - LUÔN LUÔN trả lời bằng tiếng Việt trừ khi được yêu cầu rõ ràng "answer in English" hoặc "trả lời bằng tiếng Anh"
@@ -370,6 +385,9 @@ CHUYÊN MÔN CHÍNH:
 - Drowsiness Detection
 - Web Development (Frontend/Backend)
 - AI và Deep Learning
+- Lập trình và công nghệ
+- Học tập và giáo dục
+- Cuộc sống hàng ngày
 
 THÔNG TIN NGƯỜI DÙNG:`;
 
@@ -386,13 +404,15 @@ THÔNG TIN NGƯỜI DÙNG:`;
             }
 
             systemPrompt += `\n\nHÃY:
-- Trả lời mọi câu hỏi một cách hữu ích và chính xác
-- Nếu câu hỏi không liên quan đến chuyên môn chính, vẫn trả lời đầy đủ
-- Sử dụng thông tin cá nhân để đưa ra câu trả lời phù hợp
-- Thân thiện và cá nhân hóa
-- Nhớ các cuộc trò chuyện trước đó
+- Trả lời mọi câu hỏi một cách chi tiết, hữu ích và chính xác như ChatGPT
+- Nếu câu hỏi không liên quan đến chuyên môn chính, vẫn trả lời đầy đủ và hữu ích
+- Sử dụng thông tin cá nhân để đưa ra câu trả lời phù hợp và cá nhân hóa
+- Thân thiện, nhiệt tình và sẵn sàng giúp đỡ
+- Nhớ các cuộc trò chuyện trước đó để tạo context liên tục
 - Luôn trả lời bằng tiếng Việt trừ khi được yêu cầu rõ ràng khác
-- Nếu không biết câu trả lời, hãy thành thật và đề xuất cách tìm hiểu thêm`;
+- Nếu không biết câu trả lời, hãy thành thật và đề xuất cách tìm hiểu thêm
+- Đưa ra ví dụ cụ thể khi có thể để giải thích rõ hơn
+- Sử dụng emoji phù hợp để làm câu trả lời sinh động hơn`;
 
             // Thêm lịch sử trò chuyện vào context
             const messages = [{ role: 'system', content: systemPrompt }];
@@ -407,6 +427,8 @@ THÔNG TIN NGƯỜI DÙNG:`;
             messages.push({ role: 'user', content: message });
 
             console.log('Sending request to Groq API with', messages.length, 'messages');
+            console.log('API Key present:', !!apiKey);
+            console.log('Model: llama3-8b-8192');
 
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
@@ -417,8 +439,9 @@ THÔNG TIN NGƯỜI DÙNG:`;
                 body: JSON.stringify({
                     model: 'llama3-8b-8192',
                     messages: messages,
-                    max_tokens: 512,
-                    temperature: 0.7
+                    max_tokens: 1000,
+                    temperature: 0.7,
+                    stream: false
                 })
             });
 
@@ -457,21 +480,23 @@ THÔNG TIN NGƯỜI DÙNG:`;
         } catch (error) {
             console.error('Groq API failed:', error);
             
-            // Hiển thị lỗi cụ thể cho user
+            // Hiển thị lỗi cụ thể cho user và KHÔNG fallback về simulated AI
             if (error.message.includes('API key')) {
                 addMessage('❌ ' + error.message + ' Vui lòng kiểm tra Settings ⚙️', 'bot');
+                return '❌ API key không hợp lệ. Vui lòng kiểm tra lại API key trong Settings ⚙️';
             } else if (error.message.includes('fetch')) {
                 addMessage('❌ Không thể kết nối đến Groq API. Kiểm tra kết nối internet.', 'bot');
+                return '❌ Không thể kết nối đến Groq API. Vui lòng kiểm tra kết nối internet và thử lại.';
             } else {
-                addMessage('❌ Lỗi kết nối API: ' + error.message + '. Chuyển sang chế độ mô phỏng.', 'bot');
+                addMessage('❌ Lỗi kết nối API: ' + error.message, 'bot');
+                return '❌ Lỗi kết nối API: ' + error.message + '. Vui lòng thử lại sau.';
             }
         }
     } else {
         console.log('No API key found, using fallback response');
+        // Fallback to intelligent simulated responses using user memory
+        return getIntelligentFallbackResponse(message);
     }
-
-    // Fallback to intelligent simulated responses using user memory
-    return getIntelligentFallbackResponse(message);
 }
 
 // Intelligent fallback response system
