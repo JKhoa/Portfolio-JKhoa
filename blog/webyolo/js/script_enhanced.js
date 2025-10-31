@@ -1208,26 +1208,137 @@ class EnhancedDrowsinessDetector {
 
 // ==================== AUTHENTICATION SYSTEM ====================
 
-// API Configuration
-const API_BASE_URL = 'https://webyolo-backend.railway.app';
+// API Configuration - Try multiple endpoints
+const API_ENDPOINTS = [
+    'https://webyolo-backend.railway.app',
+    'http://localhost:5000' // Fallback for local testing
+];
+const API_BASE_URL = API_ENDPOINTS[0];
 const TOKEN_KEY = 'webyolo_token';
 const USER_KEY = 'webyolo_user';
 
-// Login function
-async function login(username, password) {
+// Test API connection
+async function testAPIConnection() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
+        const response = await fetch(`${API_BASE_URL}/`, {
+            method: 'GET',
+            mode: 'cors',
         });
+        return response.ok || response.status === 200;
+    } catch (error) {
+        console.error('API connection test failed:', error);
+        return false;
+    }
+}
 
-        const data = await response.json();
+// Demo login function (fallback when backend is unavailable)
+function tryDemoLogin(username, password) {
+    // Demo accounts matching backend
+    const demoAccounts = {
+        'demo': { password: 'demo123', role: 'User', id: 1 },
+        'admin': { password: 'admin123', role: 'Admin', id: 2 }
+    };
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Đăng nhập thất bại');
+    const account = demoAccounts[username.toLowerCase()];
+    
+    if (account && account.password === password) {
+        // Create demo token (not real JWT, just for demo)
+        const demoToken = 'demo_token_' + Date.now();
+        const userData = {
+            id: account.id,
+            username: username.toLowerCase(),
+            role: account.role
+        };
+
+        // Save to localStorage
+        localStorage.setItem(TOKEN_KEY, demoToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+        // Update UI
+        updateUIAfterLogin(userData);
+
+        // Close modal
+        const loginModal = document.getElementById('loginModal');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        if (loginModal) loginModal.classList.remove('active');
+        if (loginForm) loginForm.reset();
+        if (loginError) loginError.style.display = 'none';
+
+        // Show success message
+        showNotification('Đăng nhập thành công (Demo Mode)!', 'success');
+
+        return { token: demoToken, user: userData };
+    }
+
+    throw new Error('Tên đăng nhập hoặc mật khẩu không đúng');
+}
+
+// Login function with better error handling
+async function login(username, password) {
+    const loginError = document.getElementById('loginError');
+    
+    // Validate input
+    if (!username || !password) {
+        if (loginError) {
+            loginError.textContent = 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu';
+            loginError.style.display = 'block';
+        }
+        return;
+    }
+
+    // Show loading state
+    const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+    }
+
+    try {
+        console.log('Attempting login to:', `${API_BASE_URL}/api/auth/login`);
+        
+        let response;
+        try {
+            response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+                mode: 'cors',
+                credentials: 'omit'
+            });
+        } catch (fetchError) {
+            console.warn('Backend API không khả dụng, sử dụng chế độ demo:', fetchError);
+            // Try demo login as fallback
+            return tryDemoLogin(username, password);
+        }
+
+        // Handle response
+        let data;
+        try {
+            const text = await response.text();
+            if (!text) {
+                console.warn('Empty response, trying demo mode');
+                return tryDemoLogin(username, password);
+            }
+            data = JSON.parse(text);
+        } catch (e) {
+            console.warn('Failed to parse response, trying demo mode:', e);
+            return tryDemoLogin(username, password);
+        }
+
+        if (!response || !response.ok) {
+            // If backend returns error, try demo mode as fallback
+            if (response && (response.status === 400 || response.status === 401)) {
+                try {
+                    return tryDemoLogin(username, password);
+                } catch (demoError) {
+                    throw new Error(data.message || 'Tên đăng nhập hoặc mật khẩu không đúng');
+                }
+            }
+            throw new Error(data.message || `Đăng nhập thất bại: ${response?.status || 'Unknown error'}`);
         }
 
         // Save token and user info
@@ -1251,11 +1362,45 @@ async function login(username, password) {
         return data;
     } catch (error) {
         console.error('Login error:', error);
-        const loginError = document.getElementById('loginError');
+        
+        // Reset button
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+        
+        // Show user-friendly error message
+        let errorMessage = 'Đăng nhập thất bại. ';
+        
+        if (error.message) {
+            if (error.message.includes('fetch') || error.message.includes('Failed') || error.message.includes('network')) {
+                // Try demo mode as last resort
+                try {
+                    const demoResult = tryDemoLogin(username, password);
+                    // If demo login succeeds, return result
+                    return demoResult;
+                } catch (demoError) {
+                    // Demo login also failed
+                    errorMessage = 'Không thể kết nối đến server và chế độ demo cũng không thành công. ';
+                    errorMessage += 'Vui lòng kiểm tra lại thông tin đăng nhập (demo/demo123 hoặc admin/admin123).';
+                }
+            } else {
+                errorMessage = error.message;
+            }
+        } else {
+            // Try demo mode as fallback
+            try {
+                return tryDemoLogin(username, password);
+            } catch (demoError) {
+                errorMessage += 'Vui lòng kiểm tra tên đăng nhập và mật khẩu.';
+            }
+        }
+        
         if (loginError) {
-            loginError.textContent = error.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+            loginError.textContent = errorMessage;
             loginError.style.display = 'block';
         }
+        
         throw error;
     }
 }
