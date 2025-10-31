@@ -775,7 +775,7 @@ class EnhancedDrowsinessDetector {
                     <div>Độ tin cậy: ${detection.confidence}%</div>
                 </div>
                 <div class="database-actions">
-                                <button onclick="this.deleteDetection(${detection.id})" class="btn btn-small btn-danger">Xóa</button>
+                                ${isAdmin() ? `<button onclick="window.drowsinessDetector.deleteDetection(${detection.id})" class="btn btn-small btn-danger">Xóa</button>` : '<span style="color: #888; font-size: 0.85rem;">Chỉ Admin mới có thể xóa</span>'}
                 </div>
                         `;
                     }
@@ -787,7 +787,13 @@ class EnhancedDrowsinessDetector {
     }
 
     clearDatabase() {
-        if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu?')) {
+        // Check permission - only Admin can delete
+        if (!isAdmin()) {
+            this.showNotification('❌ Chỉ Admin mới có quyền xóa dữ liệu!', 'error');
+            return;
+        }
+        
+        if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu? Chỉ Admin mới có thể thực hiện hành động này.')) {
             localStorage.removeItem('drowsinessDetections');
             this.refreshDatabase();
             this.showNotification('🗑️ Đã xóa tất cả dữ liệu', 'success');
@@ -795,6 +801,12 @@ class EnhancedDrowsinessDetector {
     }
 
     deleteDetection(id) {
+        // Check permission - only Admin can delete
+        if (!isAdmin()) {
+            this.showNotification('❌ Chỉ Admin mới có quyền xóa dữ liệu!', 'error');
+            return;
+        }
+        
         const detections = JSON.parse(localStorage.getItem('drowsinessDetections') || '[]');
         const filtered = detections.filter(d => d.id !== id);
         localStorage.setItem('drowsinessDetections', JSON.stringify(filtered));
@@ -1416,6 +1428,32 @@ function logout() {
     showNotification('Đã đăng xuất thành công!', 'info');
 }
 
+// Check if current user is Admin
+function isAdmin() {
+    const user = getCurrentUser();
+    return user && user.role === 'Admin';
+}
+
+// Update UI based on user role
+function updateUIBasedOnRole() {
+    const clearDatabaseBtn = document.getElementById('clearDatabase');
+    const isAdminUser = isAdmin();
+    
+    // Hide delete button if user is not admin
+    if (clearDatabaseBtn) {
+        if (isAdminUser) {
+            clearDatabaseBtn.style.display = 'inline-block';
+        } else {
+            clearDatabaseBtn.style.display = 'none';
+        }
+    }
+    
+    // Re-render database list to update delete buttons visibility
+    if (window.drowsinessDetector && typeof window.drowsinessDetector.refreshDatabase === 'function') {
+        window.drowsinessDetector.refreshDatabase();
+    }
+}
+
 // Update UI after login
 function updateUIAfterLogin(user) {
     const loginBtn = document.getElementById('loginBtn');
@@ -1431,6 +1469,9 @@ function updateUIAfterLogin(user) {
             userName.textContent = `${user.username} (${user.role})`;
         }
     }
+    
+    // Update UI based on role
+    updateUIBasedOnRole();
 }
 
 // Update UI after logout
@@ -1439,6 +1480,9 @@ function updateUIAfterLogout() {
     const userInfo = document.getElementById('userInfo');
     if (loginBtn) loginBtn.style.display = 'flex';
     if (userInfo) userInfo.style.display = 'none';
+    
+    // Hide delete button when logged out
+    updateUIBasedOnRole();
 }
 
 // Check if user is already logged in
@@ -1564,6 +1608,9 @@ function initializeAuth() {
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Authentication first
     initializeAuth();
+    
+    // Update UI based on role (hide delete buttons if not admin)
+    updateUIBasedOnRole();
     
     const chatbotToggle = document.getElementById('chatbotToggle');
     if (chatbotToggle) {
