@@ -1401,7 +1401,10 @@ async function login(username, password) {
             loginError.style.display = 'block';
         }
         
-        throw error;
+        // Only throw error if demo login also failed
+        if (!errorMessage.includes('đã thử chế độ demo') && !errorMessage.includes('chế độ demo cũng không thành công')) {
+            throw error;
+        }
     }
 }
 
