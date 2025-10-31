@@ -1617,7 +1617,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const detector = new EnhancedDrowsinessDetector();
         // Make instance globally accessible
         window.drowsinessDetector = detector;
-        console.log('EnhancedDrowsinessDet customer initialized');
+        console.log('EnhancedDrowsinessDetector initialized');
         
         // Kiểm tra và sửa lỗi font cho chatbot
         fixChatbotFontIssues();
