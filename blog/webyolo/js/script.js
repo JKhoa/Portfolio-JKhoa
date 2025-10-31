@@ -1853,8 +1853,191 @@ class DrowsinessDetector {
     }
 }
 
+// ==================== AUTHENTICATION SYSTEM ====================
+
+// API Configuration
+const API_BASE_URL = 'https://webyolo-backend.railway.app';
+const TOKEN_KEY = 'webyolo_token';
+const USER_KEY = 'webyolo_user';
+
+// Login Modal Elements
+const loginBtn = document.getElementById('loginBtn');
+const loginModal = document.getElementById('loginModal');
+const closeLogin = document.getElementById('closeLogin');
+const loginForm = document.getElementById('loginForm');
+const loginError = document.getElementById('loginError');
+const userInfo = document.getElementById('userInfo');
+const userName = document.getElementById('userName');
+const logoutBtn = document.getElementById('logoutBtn');
+
+// Check if user is already logged in
+function checkAuthStatus() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const user = localStorage.getItem(USER_KEY);
+    
+    if (token && user) {
+        try {
+            const userData = JSON.parse(user);
+            updateUIAfterLogin(userData);
+        } catch (e) {
+            console.error('Error parsing user data:', e);
+            logout();
+        }
+    }
+}
+
+// Login function
+async function login(username, password) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Đăng nhập thất bại');
+        }
+
+        // Save token and user info
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+
+        // Update UI
+        updateUIAfterLogin(data.user);
+
+        // Close modal
+        loginModal.classList.remove('active');
+        loginForm.reset();
+        loginError.style.display = 'none';
+
+        // Show success message
+        showNotification('Đăng nhập thành công!', 'success');
+
+        return data;
+    } catch (error) {
+        console.error('Login error:', error);
+        loginError.textContent = error.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+        loginError.style.display = 'block';
+        throw error;
+    }
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    updateUIAfterLogout();
+    showNotification('Đã đăng xuất thành công!', 'info');
+}
+
+// Update UI after login
+function updateUIAfterLogin(user) {
+    loginBtn.style.display = 'none';
+    userInfo.style.display = 'flex';
+    userName.textContent = `${user.username} (${user.role})`;
+    
+    // Add badge for admin
+    if (user.role === 'Admin') {
+        userName.innerHTML = `${user.username} <span style="background: #FFD700; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">ADMIN</span>`;
+    }
+}
+
+// Update UI after logout
+function updateUIAfterLogout() {
+    loginBtn.style.display = 'flex';
+    userInfo.style.display = 'none';
+}
+
+// Get authentication token
+function getAuthToken() {
+    return localStorage.getItem(TOKEN_KEY);
+}
+
+// Get current user
+function getCurrentUser() {
+    const user = localStorage.getItem(USER_KEY);
+    return user ? JSON.parse(user) : null;
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+    // Simple notification (can be enhanced)
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Event Listeners
+if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+        loginModal.classList.add('active');
+    });
+}
+
+if (closeLogin) {
+    closeLogin.addEventListener('click', () => {
+        loginModal.classList.remove('active');
+        loginForm.reset();
+        loginError.style.display = 'none';
+    });
+}
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', logout);
+}
+
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            await login(username, password);
+        } catch (error) {
+            // Error already handled in login function
+        }
+    });
+}
+
+// Close modal when clicking outside
+if (loginModal) {
+    loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) {
+            loginModal.classList.remove('active');
+            loginForm.reset();
+            loginError.style.display = 'none';
+        }
+    });
+}
+
 // Initialize demo when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    // Check authentication status
+    checkAuthStatus();
+    
     // Check if we're on the demo page (has demo elements)
     if (document.getElementById('webcam')) {
         window.drowsinessDetector = new DrowsinessDetector();
