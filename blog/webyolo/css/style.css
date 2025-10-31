@@ -160,6 +160,9 @@ h6 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
+    z-index: 1001;
+    pointer-events: auto;
 }
 
 .btn-login:hover {
