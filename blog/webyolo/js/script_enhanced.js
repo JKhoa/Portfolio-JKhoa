@@ -1614,8 +1614,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const chatbotToggle = document.getElementById('chatbotToggle');
     if (chatbotToggle) {
-        new EnhancedDrowsinessDetector();
-        console.log('EnhancedDrowsinessDetector initialized');
+        const detector = new EnhancedDrowsinessDetector();
+        // Make instance globally accessible
+        window.drowsinessDetector = detector;
+        console.log('EnhancedDrowsinessDet customer initialized');
         
         // Kiểm tra và sửa lỗi font cho chatbot
         fixChatbotFontIssues();
